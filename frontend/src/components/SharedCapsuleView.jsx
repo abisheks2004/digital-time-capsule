@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function SharedCapsuleView() {
   const { id } = useParams();
   const [capsule, setCapsule] = useState(null);
@@ -16,7 +18,7 @@ export default function SharedCapsuleView() {
     }
 
     axios
-      .get(`http://localhost:5000/api/capsules/share/${id}`)
+      .get(`${API_URL}/api/capsules/share/${id}`)
       .then((res) => {
         const data = res.data;
         const isUnlocked = new Date(data.unlockDate) <= new Date();

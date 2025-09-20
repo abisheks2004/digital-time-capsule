@@ -1,6 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"; // backend URL
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"; // frontend URL
 
 export default function CapsuleForm() {
   const [message, setMessage] = useState("");
@@ -10,7 +13,6 @@ export default function CapsuleForm() {
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState("");
 
-  // Handle file input changes
   const handleFiles = (e) => {
     setAttachments([...attachments, ...e.target.files]);
   };
@@ -24,16 +26,13 @@ export default function CapsuleForm() {
       formData.append("message", message);
       formData.append("unlockDate", unlockDate);
       formData.append("unlockTime", unlockTime);
-
       attachments.forEach((file) => formData.append("attachments", file));
 
-      const res = await axios.post(
-        "http://localhost:5000/api/capsules",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const res = await axios.post(`${API_URL}/api/capsules`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      setLink(`http://localhost:5173/capsule/share/${res.data.shareLink}`);
+      setLink(`${FRONTEND_URL}/capsule/share/${res.data.shareLink}`);
       setMessage("");
       setUnlockDate("");
       setUnlockTime("");

@@ -2,17 +2,19 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function CapsuleDetails({ capsule, onDelete }) {
   const [deleting, setDeleting] = useState(false);
   const isUnlocked = new Date(capsule.unlockDate) <= new Date();
-  const shareUrl = `http://localhost:5000/api/capsules/share/${capsule._id}`;
+  const shareUrl = `${API_URL}/api/capsules/share/${capsule._id}`;
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this capsule?")) return;
 
     try {
       setDeleting(true);
-      await axios.delete(`http://localhost:5000/api/capsules/${capsule._id}`);
+      await axios.delete(`${API_URL}/api/capsules/${capsule._id}`);
       if (onDelete) onDelete(capsule._id); // remove from parent list
       alert("Capsule deleted successfully!");
     } catch (err) {

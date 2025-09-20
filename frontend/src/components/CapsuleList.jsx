@@ -3,6 +3,8 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import CapsuleDetails from "./CapsuleDetails";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function CapsuleList() {
   const [capsules, setCapsules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ export default function CapsuleList() {
 
   const fetchCapsules = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/capsules");
+      const res = await axios.get(`${API_URL}/api/capsules`);
       setCapsules(res.data);
     } catch (err) {
       console.error(err);
@@ -24,7 +26,6 @@ export default function CapsuleList() {
     }
   };
 
-  // Handler to remove capsule from state after deletion
   const handleDelete = (id) => {
     setCapsules((prev) => prev.filter((capsule) => capsule._id !== id));
   };
