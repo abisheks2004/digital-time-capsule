@@ -14,16 +14,18 @@ const capsuleRoutes = require('./routes/capsules');
 app.use('/api/capsules', capsuleRoutes);
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => {
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected");
+  } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
-    console.error("Check your MONGO_URI and internet connection.");
+    console.error("Check your MONGO_URI, IP whitelist in Atlas, and internet connection.");
     process.exit(1); // stop server if DB not connected
-});
+  }
+};
+
+connectDB();
 
 // Health check route
 app.get('/', (req, res) => res.send('Server is running!'));
