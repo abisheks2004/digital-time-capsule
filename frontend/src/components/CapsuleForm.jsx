@@ -2,48 +2,56 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"; // backend URL
-const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"; // frontend URL
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 export default function CapsuleForm() {
   const [message, setMessage] = useState("");
   const [unlockDate, setUnlockDate] = useState("");
   const [unlockTime, setUnlockTime] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState("");
 
+  // Handle file selection
   const handleFiles = (e) => {
     setAttachments([...attachments, ...e.target.files]);
   };
 
+  // Submit form
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("message", message);
-      formData.append("unlockDate", unlockDate);
-      formData.append("unlockTime", unlockTime);
-      attachments.forEach((file) => formData.append("attachments", file));
+  try {
+    const dateTime = unlockTime ? `${unlockDate}T${unlockTime}` : unlockDate;
 
-      const res = await axios.post(`${API_URL}/api/capsules`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    const payload = {
+      message,
+      unlockDate: dateTime,
+      userEmail,
+    };
 
-      setLink(`${FRONTEND_URL}/capsule/share/${res.data.shareLink}`);
-      setMessage("");
-      setUnlockDate("");
-      setUnlockTime("");
-      setAttachments([]);
-    } catch (err) {
-      console.error(err);
-      alert("Error creating capsule");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // POST request (JSON)
+    const res = await axios.post(`${API_URL}/api/capsules`, payload);
+
+    setLink(`${FRONTEND_URL}/capsules/share/${res.data.capsule._id}`);
+
+    // Reset form
+    setMessage("");
+    setUnlockDate("");
+    setUnlockTime("");
+    setAttachments([]);
+    setUserEmail("");
+    alert("✅ Capsule created successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error creating capsule: " + (err.response?.data?.error || err.message));
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <motion.form
@@ -95,10 +103,25 @@ export default function CapsuleForm() {
         </div>
       </div>
 
+      {/* Recipient Email */}
+      <div>
+        <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
+          Recipient Email
+        </label>
+        <input
+          type="email"
+          value={userEmail}
+          onChange={(e) => setUserEmail(e.target.value)}
+          placeholder="Enter recipient email..."
+          required
+          className="w-full p-2 border rounded-lg border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+        />
+      </div>
+
       {/* Attachments */}
       <div>
         <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
-          Attach Media (Image, Audio, Video, Links)
+          Attach Media (Image, Audio, Video)
         </label>
         <input
           type="file"

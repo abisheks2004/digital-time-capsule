@@ -14,17 +14,18 @@ export default function CapsuleList() {
     fetchCapsules();
   }, []);
 
-  const fetchCapsules = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/capsules`);
-      setCapsules(res.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load capsules. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchCapsules = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/api/capsules`);
+    setCapsules(res.data.capsules || []); // <-- use the array
+  } catch (err) {
+    console.error(err);
+    setError("Failed to load capsules. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleDelete = (id) => {
     setCapsules((prev) => prev.filter((capsule) => capsule._id !== id));

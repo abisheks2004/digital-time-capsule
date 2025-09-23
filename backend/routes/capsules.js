@@ -1,50 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const Capsule = require('../models/Capsule');
 
-// Configure multer storage
-const storage = multer.memoryStorage(); // keeps files in memory as Buffer
-const upload = multer({ storage });
-
-// POST route to create capsule with attachments
-router.post('/', upload.array('attachments'), async (req, res) => {
+// CREATE capsule
+router.post('/', async (req, res) => {
   try {
-    const { message, unlockDate, unlockTime } = req.body;
-
-    if (!message || !unlockDate) {
-      return res.status(400).json({ error: 'Message and unlock date are required' });
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: 'Request body is missing' });
     }
 
-    // Convert uploaded files into attachment objects
-    const attachments = req.files.map(file => ({
-      fileName: file.originalname,
-      fileType: file.mimetype.startsWith('image')
-        ? 'image'
-        : file.mimetype.startsWith('video')
-        ? 'video'
-        : file.mimetype.startsWith('audio')
-        ? 'audio'
-        : 'link',
-      fileUrl: file.buffer.toString('base64'), // store small files as Base64
-    }));
+    const { message, unlockDate, userEmail } = req.body;
+    if (!message || !unlockDate || !userEmail) {
+      return res.status(400).json({ error: 'Message, unlockDate, and email required' });
+    }
 
-    // Combine date + time if provided
-    const unlockDateTime = unlockTime
-      ? new Date(`${unlockDate}T${unlockTime}`)
-      : new Date(unlockDate);
-
-    const shareLink = Math.random().toString(36).substring(2, 12); // generate token
-
-    const capsule = new Capsule({
-      message,
-      unlockDate: unlockDateTime,
-      shareLink,
-      attachments,
-    });
-
+    const capsule = new Capsule({ message, unlockDate: new Date(unlockDate), userEmail });
     await capsule.save();
-    res.status(201).json({ success: true, shareLink: capsule.shareLink });
+    res.status(201).json({ success: true, capsule });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -55,24 +27,48 @@ router.post('/', upload.array('attachments'), async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const capsules = await Capsule.find().sort({ createdAt: -1 });
-    res.json(capsules);
+    res.json({ success: true, capsules });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// DELETE capsule by ID
-router.delete('/:id', async (req, res) => {
+// UPDATE capsule
+router.put('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const deleted = await Capsule.findByIdAndDelete(id);
+    const { message, unlockDate, userEmail } = req.body;
 
-    if (!deleted) {
-      return res.status(404).json({ error: 'Capsule not found' });
+    if (!message && !unlockDate && !userEmail) {
+      return res.status(400).json({ error: 'At least one field required to update' });
     }
 
-    res.status(200).json({ success: true, message: 'Capsule deleted' });
+    const capsule = await Capsule.findById(req.params.id);
+    if (!capsule) return res.status(404).json({ error: 'Capsule not found' });
+
+    if (new Date(capsule.unlockDate) <= new Date()) {
+      return res.status(400).json({ error: 'Cannot edit an unlocked capsule' });
+    }
+
+    if (message) capsule.message = message;
+    if (unlockDate) capsule.unlockDate = new Date(unlockDate);
+    if (userEmail) capsule.userEmail = userEmail;
+
+    await capsule.save();
+    res.json({ success: true, capsule });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// DELETE capsule
+router.delete('/:id', async (req, res) => {
+  try {
+    const capsule = await Capsule.findByIdAndDelete(req.params.id);
+    if (!capsule) return res.status(404).json({ error: 'Capsule not found' });
+
+    res.json({ success: true, message: 'Capsule deleted' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });

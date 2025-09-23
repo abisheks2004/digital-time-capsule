@@ -17,6 +17,8 @@ const CapsuleSchema = new mongoose.Schema({
   attachments: [AttachmentSchema],  // optional, can store multiple files
   unlockDate: { type: Date, required: true },
   shareLink: { type: String, unique: true, required: true }, // token
+  userEmail: { type: String, required: true }, // 👈 recipient email
+  notified: { type: Boolean, default: false }, // 👈 mark if notification sent
   createdAt: { type: Date, default: Date.now },
 });
 
