@@ -10,25 +10,61 @@ export default function CapsuleList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
+    const fetchCapsules = async () => {
+      if (!token) {
+        setError("You are not logged in.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${API_URL}/api/capsules`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCapsules(res.data.capsules || []);
+      } catch (err) {
+        console.error(err);
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please login again.");
+          localStorage.removeItem("token");
+        } else {
+          setError("Failed to load capsules. Please try again later.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchCapsules();
-  }, []);
-
- const fetchCapsules = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/api/capsules`);
-    setCapsules(res.data.capsules || []); // <-- use the array
-  } catch (err) {
-    console.error(err);
-    setError("Failed to load capsules. Please try again later.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  }, [token]);
 
   const handleDelete = (id) => {
     setCapsules((prev) => prev.filter((capsule) => capsule._id !== id));
+  };
+
+  const handleUpdate = (updatedCapsule) => {
+    setCapsules((prev) =>
+      prev.map((c) => (c._id === updatedCapsule._id ? updatedCapsule : c))
+    );
+  };
+
+  // ✅ Toggle Share
+  const handleShareToggle = async (capsuleId) => {
+    try {
+      const res = await axios.put(
+        `${API_URL}/api/capsules/${capsuleId}`, // Your update route
+        { shared: !capsules.find((c) => c._id === capsuleId).shared },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update local state immediately
+      handleUpdate(res.data.capsule);
+    } catch (err) {
+      console.error("Failed to toggle share:", err.message);
+    }
   };
 
   if (loading) {
@@ -69,7 +105,12 @@ export default function CapsuleList() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <CapsuleDetails capsule={capsule} onDelete={handleDelete} />
+            <CapsuleDetails
+              capsule={capsule}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
+              onShareToggle={handleShareToggle} // ✅ Pass Share toggle
+            />
           </motion.div>
         ))}
       </AnimatePresence>

@@ -8,15 +8,15 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 // Generate Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: "7d" });
+const generateToken = (user) => {
+  // Include both id and email in the JWT
+  return jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 };
 
 // ✅ Signup
 router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -30,7 +30,7 @@ router.post("/signup", async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      token: generateToken(user), // ✅ pass the user object
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -52,12 +52,13 @@ router.post("/login", async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      token: generateToken(user), // ✅ pass the user object
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
 
 // ✅ Get current user (Profile)
 router.get("/me", auth, async (req, res) => {

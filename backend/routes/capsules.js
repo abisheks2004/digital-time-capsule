@@ -1,77 +1,182 @@
-const express = require('express');
+const express = require("express");
+const crypto = require("crypto");
 const router = express.Router();
-const Capsule = require('../models/Capsule');
+const Capsule = require("../models/Capsule");
+const auth = require("../middleware/auth");
+const sendCapsuleEmail = require("../utils/sendCapsuleEmail");
 
-// CREATE capsule
-router.post('/', async (req, res) => {
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+const isEmail = (e) => /^\S+@\S+\.\S+$/.test(String(e || "").trim());
+const toLocal = (d) => {
+  const dt = d instanceof Date ? d : new Date(d);
+  return Number.isNaN(dt.getTime()) ? "" : dt.toLocaleString();
+};
+const parseUnlockDate = (val) => {
+  if (!val) return null;
+  // accepts dd-mm-yyyy or any Date-parsable string
+  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(val));
+  if (m) {
+    const [_, dd, mm, yyyy] = m;
+    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 0, 0, 0, 0);
+  }
+  const d = new Date(val);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
+// CREATE capsule (emails recipient only)
+router.post("/", auth, async (req, res) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ error: 'Request body is missing' });
+    const {
+      message,
+      unlockDate,
+      shared,
+      attachments,
+      recipientEmail,   // NEW
+      title,
+    } = req.body;
+
+    if (!message || !unlockDate) {
+      return res.status(400).json({ error: "Message and unlockDate are required" });
     }
 
-    const { message, unlockDate, userEmail } = req.body;
-    if (!message || !unlockDate || !userEmail) {
-      return res.status(400).json({ error: 'Message, unlockDate, and email required' });
+    const parsedUnlock = parseUnlockDate(unlockDate);
+    if (!parsedUnlock) {
+      return res.status(400).json({ error: "Invalid unlockDate" });
     }
 
-    const capsule = new Capsule({ message, unlockDate: new Date(unlockDate), userEmail });
+    if (recipientEmail && !isEmail(recipientEmail)) {
+      return res.status(400).json({ error: "Invalid recipientEmail" });
+    }
+
+    // optional: avoid sending to yourself by mistake
+    if (
+      recipientEmail &&
+      req.user?.email &&
+      recipientEmail.trim().toLowerCase() === req.user.email.toLowerCase()
+    ) {
+      console.warn("Recipient equals sender; skipping immediate email.");
+    }
+
+    // Generate share token for public route /share/:link (fallback to _id if you don’t use shareLink)
+    const shareToken = crypto.randomBytes(10).toString("hex") + "-" + Date.now().toString(36);
+
+    const capsule = new Capsule({
+      user: req.user.id,
+      userEmail: req.user.email,          // sender (owner)
+      recipientEmail: recipientEmail?.trim() || "", // store receiver
+      title: title || "Time Capsule",
+      message,
+      unlockDate: parsedUnlock,
+      shared: !!shared,
+      attachments: attachments || [],
+      shareLink: shareToken,
+      notified: false,                    // for unlock cron
+    });
+
     await capsule.save();
+
+    // Send “You’ve received a capsule” ONLY to recipient (never to userEmail)
+    if (
+      recipientEmail &&
+      recipientEmail.trim().toLowerCase() !== (req.user.email || "").toLowerCase()
+    ) {
+      const shareLink = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+      const fromName = req.user?.name || req.user?.email || "Someone";
+      const displayUnlock = toLocal(parsedUnlock);
+
+      // fire-and-forget; do not block response
+      sendCapsuleEmail(
+        recipientEmail.trim(),
+        title || "Time Capsule",
+        displayUnlock,
+        shareLink,
+        Array.isArray(attachments) ? attachments : [],
+        fromName
+      ).catch((e) => console.error("Immediate recipient email failed:", e.message));
+    }
+
     res.status(201).json({ success: true, capsule });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// GET all capsules
-router.get('/', async (req, res) => {
+// GET all capsules of logged-in user
+router.get("/", auth, async (req, res) => {
   try {
-    const capsules = await Capsule.find().sort({ createdAt: -1 });
+    const capsules = await Capsule.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json({ success: true, capsules });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// UPDATE capsule
-router.put('/:id', async (req, res) => {
+// GET capsule by shareLink (public access)
+router.get("/share/:link", async (req, res) => {
   try {
-    const { message, unlockDate, userEmail } = req.body;
+    const capsule = await Capsule.findOne({ shareLink: req.params.link });
+    if (!capsule) return res.status(404).json({ error: "Capsule not found" });
 
-    if (!message && !unlockDate && !userEmail) {
-      return res.status(400).json({ error: 'At least one field required to update' });
-    }
+    const isUnlocked = new Date(capsule.unlockDate) <= new Date();
+    res.json({ ...capsule.toObject(), isUnlocked });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
+// UPDATE capsule (owner only) — unchanged except we allow updating recipientEmail safely
+router.put("/:id", auth, async (req, res) => {
+  try {
     const capsule = await Capsule.findById(req.params.id);
-    if (!capsule) return res.status(404).json({ error: 'Capsule not found' });
-
-    if (new Date(capsule.unlockDate) <= new Date()) {
-      return res.status(400).json({ error: 'Cannot edit an unlocked capsule' });
+    if (!capsule) return res.status(404).json({ error: "Capsule not found" });
+    if (capsule.user.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized" });
     }
+
+    const { message, unlockDate, shared, attachments, recipientEmail, title } = req.body;
 
     if (message) capsule.message = message;
-    if (unlockDate) capsule.unlockDate = new Date(unlockDate);
-    if (userEmail) capsule.userEmail = userEmail;
+    if (title) capsule.title = title;
+    if (unlockDate) {
+      const parsed = parseUnlockDate(unlockDate);
+      if (!parsed) return res.status(400).json({ error: "Invalid unlockDate" });
+      capsule.unlockDate = parsed;
+      capsule.notified = false; // reschedule unlock email
+    }
+    if (shared !== undefined) capsule.shared = !!shared;
+    if (attachments) capsule.attachments = attachments;
+    if (recipientEmail !== undefined) {
+      if (recipientEmail && !isEmail(recipientEmail)) {
+        return res.status(400).json({ error: "Invalid recipientEmail" });
+      }
+      capsule.recipientEmail = recipientEmail?.trim() || "";
+    }
 
     await capsule.save();
     res.json({ success: true, capsule });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// DELETE capsule
-router.delete('/:id', async (req, res) => {
+// DELETE capsule (owner only)
+router.delete("/:id", auth, async (req, res) => {
   try {
-    const capsule = await Capsule.findByIdAndDelete(req.params.id);
-    if (!capsule) return res.status(404).json({ error: 'Capsule not found' });
-
-    res.json({ success: true, message: 'Capsule deleted' });
+    const capsule = await Capsule.findById(req.params.id);
+    if (!capsule) return res.status(404).json({ error: "Capsule not found" });
+    if (capsule.user.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+    await capsule.deleteOne();
+    res.json({ success: true, message: "Capsule deleted" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

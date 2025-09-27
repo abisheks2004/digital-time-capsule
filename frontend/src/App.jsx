@@ -7,7 +7,6 @@ import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import CreateCapsule from "./pages/CreateCapsule";
-import SharedCapsuleView from "./components/SharedCapsuleView";
 import BackButton from "./components/BackButton";
 
 export default function App() {
@@ -67,7 +66,7 @@ export default function App() {
           <Route path="/home" element={token ? <Home /> : <Navigate to="/" />} />
           <Route path="/profile" element={token ? <ProfilePage /> : <Navigate to="/" />} />
           <Route path="/create" element={token ? <CreateCapsule /> : <Navigate to="/" />} />
-          <Route path="/capsule/share/:token" element={<SharedCapsuleView />} />
+      
 
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" />} />

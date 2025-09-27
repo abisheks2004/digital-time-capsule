@@ -1,33 +1,38 @@
 const mongoose = require('mongoose');
 
-// Attachment schema for multiple media types
 const AttachmentSchema = new mongoose.Schema({
   fileName: { type: String, required: true },
-  fileUrl: { type: String, required: true },   // could be local path or cloud URL
-  fileType: { 
-    type: String, 
-    enum: ['image', 'video', 'audio', 'link'], // only allowed types
-    required: true
-  },
+  fileUrl: { type: String, required: true },
+  fileType: { type: String, enum: ['image', 'video', 'audio', 'link'], required: true },
 });
 
-// Main Capsule schema
 const CapsuleSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,  // 🔑 link to User
+    ref: "User",
+    required: true,
+  },
+  userEmail: { type: String, required: true },
+
   message: { type: String, required: true },
-  attachments: [AttachmentSchema],  // optional, can store multiple files
+  attachments: [AttachmentSchema],
+
   unlockDate: { type: Date, required: true },
-  shareLink: { type: String, unique: true, required: true }, // token
-  userEmail: { type: String, required: true }, // 👈 recipient email
-  notified: { type: Boolean, default: false }, // 👈 mark if notification sent
+
+  shareLink: { type: String, unique: true, required: true },
+
+  shared: { type: Boolean, default: false }, // 🔑 keep this if you want public capsules
+
+  notified: { type: Boolean, default: false },
+
   createdAt: { type: Date, default: Date.now },
 });
 
-// Optional: automatically generate shareLink if not provided
-CapsuleSchema.pre('validate', function(next) {
+CapsuleSchema.pre('validate', function (next) {
   if (!this.shareLink) {
-    this.shareLink = Math.random().toString(36).substring(2, 12); // 10-char token
+    this.shareLink = Math.random().toString(36).substring(2, 12);
   }
   next();
 });
 
-module.exports = mongoose.model('Capsule', CapsuleSchema);
+module.exports = mongoose.models.Capsule || mongoose.model('Capsule', CapsuleSchema);
