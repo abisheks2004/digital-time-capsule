@@ -1,4 +1,4 @@
-
+import cors from "cors";
 require("dotenv").config();
 const mongoose = require("mongoose");
 const app = require("./app");
@@ -68,3 +68,9 @@ global.__CRONS_STARTED = global.__CRONS_STARTED || false;
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 })();
+
+
+app.use(cors({
+  origin: ["http://localhost:5173", "https://your-frontend.vercel.app"],
+  credentials: true
+}));
