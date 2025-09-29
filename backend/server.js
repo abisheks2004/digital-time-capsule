@@ -1,10 +1,12 @@
 import cors from "cors";
 import dotenv from "dotenv";
-const mongoose = require("mongoose");
-const app = require("./app");
-const { startNotificationCron } = require("./notifications/cron");
-const { startReminderCron } = require("./notifications/reminders");
+import mongoose from "mongoose";
+import app from "./app.js"; // <-- ESM import
+import { startNotificationCron } from "./notifications/cron.js"; // <-- ESM import
+import { startReminderCron } from "./notifications/reminders.js"; // <-- ESM import
+
 dotenv.config();
+
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/timecapsule";
 
@@ -52,6 +54,16 @@ global.__CRONS_STARTED = global.__CRONS_STARTED || false;
     }
   }
 
+  app.use(
+    cors({
+      origin: [
+        "http://localhost:5173",
+        "https://digital-time-capsule-five.vercel.app/" // <-- replace with your real frontend URL
+      ],
+      credentials: true,
+    })
+  );
+
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
   });
@@ -68,9 +80,3 @@ global.__CRONS_STARTED = global.__CRONS_STARTED || false;
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 })();
-
-
-app.use(cors({
-  origin: ["http://localhost:5173", "https://your-frontend.vercel.app"],
-  credentials: true
-}));

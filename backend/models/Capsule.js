@@ -1,14 +1,14 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const AttachmentSchema = new mongoose.Schema({
   fileName: { type: String, required: true },
   fileUrl: { type: String, required: true },
-  fileType: { type: String, enum: ['image', 'video', 'audio', 'link'], required: true },
+  fileType: { type: String, enum: ["image", "video", "audio", "link"], required: true },
 });
 
 const CapsuleSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,  // 🔑 link to User
+    type: mongoose.Schema.Types.ObjectId, // 🔑 link to User
     ref: "User",
     required: true,
   },
@@ -28,11 +28,12 @@ const CapsuleSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-CapsuleSchema.pre('validate', function (next) {
+CapsuleSchema.pre("validate", function (next) {
   if (!this.shareLink) {
     this.shareLink = Math.random().toString(36).substring(2, 12);
   }
   next();
 });
 
-module.exports = mongoose.models.Capsule || mongoose.model('Capsule', CapsuleSchema);
+// ✅ Export as ESM
+export default mongoose.models.Capsule || mongoose.model("Capsule", CapsuleSchema);

@@ -1,14 +1,13 @@
-// notifications/reminders.js
-const cron = require("node-cron");
-const Capsule = require("../models/Capsule");
-const sendEmail = require("../utils/sendEmail");
-const { nextReminderStage, relativeFromNow, formatLocal } = require("../utils/time");
+import cron from "node-cron";
+import Capsule from "../models/Capsule.js";
+import sendEmail from "../utils/sendEmail.js";
+import { nextReminderStage, relativeFromNow, formatLocal } from "../utils/time.js";
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
 const CRON_SCHEDULE = process.env.CRON_REMINDERS || "*/1 * * * *"; // every minute
 let running = false;
 
-function startReminderCron() {
+export function startReminderCron() {
   cron.schedule(CRON_SCHEDULE, async () => {
     if (running) return;
     running = true;
@@ -89,5 +88,3 @@ function startReminderCron() {
     }
   });
 }
-
-module.exports = { startReminderCron };

@@ -1,8 +1,7 @@
-// backend/controllers/capsuleController.js
-const Capsule = require('../models/Capsule');
-const { v4: uuidv4 } = require('uuid');
+import Capsule from "../models/Capsule.js";
+import { v4 as uuidv4 } from "uuid";
 
-exports.createCapsule = async (req, res) => {
+export const createCapsule = async (req, res) => {
   const { message, attachments, unlockDate } = req.body;
   const newCapsule = new Capsule({
     message,
@@ -19,7 +18,7 @@ exports.createCapsule = async (req, res) => {
   }
 };
 
-exports.getSharedCapsule = async (req, res) => {
+export const getSharedCapsule = async (req, res) => {
   const { token } = req.params;
   const capsule = await Capsule.findOne({ shareLink: token });
 

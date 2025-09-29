@@ -1,27 +1,35 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+// app.js
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
+// Load environment variables
+dotenv.config();
 
 // Routes
-const capsulesRoutes = require('./routes/capsules');
-const sharedCapsulesRouter = require("./routes/sharedCapsules");
+import capsulesRoutes from "./routes/capsules.js";
+import sharedCapsulesRouter from "./routes/sharedCapsules.js";
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/users.js";
 
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/users");
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://digital-time-capsule-five.vercel.app"],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/api/users", userRoutes);
+
 // Routes
-app.use('/api/capsules', capsulesRoutes);          // basic capsules // advanced capsules with attachments
+app.use("/api/users", userRoutes);
+app.use("/api/capsules", capsulesRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/shared-capsules", sharedCapsulesRouter);
+
 // Health check
-app.get('/', (req, res) => res.send('⏳ Digital Time Capsule API is running!'));
+app.get("/", (req, res) => res.send("⏳ Digital Time Capsule API is running!"));
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -29,4 +37,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong!" });
 });
 
-module.exports = app;
+export default app;

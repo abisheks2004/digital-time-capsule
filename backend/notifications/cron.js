@@ -1,16 +1,15 @@
+import cron from "node-cron";
+import Capsule from "../models/Capsule.js";
+import sendEmail from "../utils/sendEmail.js";
 
-const cron = require("node-cron");
-const Capsule = require("../models/Capsule");
-const sendEmail = require("../utils/sendEmail");
-
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
 const CRON_SCHEDULE = process.env.CRON_SCHEDULE || "*/1 * * * *";
 
 let isRunning = false;
 
 const safeEmail = (v) => (typeof v === "string" ? v.trim() : "");
 
-function startNotificationCron() {
+export function startNotificationCron() {
   cron.schedule(CRON_SCHEDULE, async () => {
     if (isRunning) return;
     isRunning = true;
@@ -20,7 +19,7 @@ function startNotificationCron() {
     let skipped = 0;
 
     try {
-      // Get candidates (don’t assume recipientEmail exists; we’ll filter safely in code)
+      // Get candidates (don’t assume recipientEmail exists; we’ll filter safely)
       const toNotify = await Capsule.find({
         notified: { $ne: true },
         unlockDate: { $lte: now },
@@ -36,10 +35,9 @@ function startNotificationCron() {
       const ops = [];
 
       for (const cap of toNotify) {
-        const to = safeEmail(cap.recipientEmail); // recipient only
+        const to = safeEmail(cap.recipientEmail);
 
         if (!to) {
-          // No recipient set -> skip (do not mark notified so it can be fixed later)
           skipped++;
           continue;
         }
@@ -81,5 +79,3 @@ function startNotificationCron() {
     }
   });
 }
-
-module.exports = { startNotificationCron };

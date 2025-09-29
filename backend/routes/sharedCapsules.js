@@ -1,8 +1,8 @@
-// routes/sharedCapsules.js
-const express = require("express");
+import express from "express";
+import Capsule from "../models/Capsule.js";
+import authMiddleware from "../middleware/auth.js"; // ESM import
+
 const router = express.Router();
-const Capsule = require("../models/Capsule");
-const authMiddleware = require("../middleware/auth"); // your JWT auth
 
 // GET all shared capsules
 router.get("/", async (req, res) => {
@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// PUT toggle shared for a capsule
+// PUT toggle shared for a capsule (owner only)
 router.put("/:id/toggle-share", authMiddleware, async (req, res) => {
   try {
     const capsule = await Capsule.findById(req.params.id);
@@ -31,4 +31,4 @@ router.put("/:id/toggle-share", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

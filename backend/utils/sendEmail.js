@@ -1,6 +1,4 @@
-
-// utils/sendEmail.js
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
@@ -25,7 +23,7 @@ const transporter = nodemailer.createTransport({
   }
 })();
 
-async function sendEmail({ to, subject, text, html, attachments = [] }) {
+export default async function sendEmail({ to, subject, text, html, attachments = [] }) {
   const info = await transporter.sendMail({
     from: process.env.MAIL_FROM || `"Digital Time Capsule" <${process.env.EMAIL_USER}>`,
     to,
@@ -37,6 +35,3 @@ async function sendEmail({ to, subject, text, html, attachments = [] }) {
   console.log("✅ Email sent:", info.messageId, "->", to);
   return info;
 }
-
-module.exports = sendEmail;
-

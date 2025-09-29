@@ -1,10 +1,12 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 function auth(req, res, next) {
   try {
     // Get token from header (case-insensitive)
-    const authHeader = req.headers["authorization"] || req.headers["Authorization"];
+    const authHeader =
+      req.headers["authorization"] || req.headers["Authorization"];
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "No token, authorization denied" });
     }
@@ -27,4 +29,4 @@ function auth(req, res, next) {
   }
 }
 
-module.exports = auth;
+export default auth;

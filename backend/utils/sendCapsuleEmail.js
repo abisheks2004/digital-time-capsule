@@ -1,8 +1,7 @@
-// utils/sendCapsuleEmail.js
-const sendEmail = require("./sendEmail");
-const { relativeFromNow, formatLocal } = require("./time");
+import sendEmail from "./sendEmail.js";
+import { relativeFromNow, formatLocal } from "./time.js";
 
-async function sendCapsuleEmail(
+export default async function sendCapsuleEmail(
   recipientEmail,
   capsuleTitle,
   unlockDate,  // Date or string
@@ -48,5 +47,3 @@ async function sendCapsuleEmail(
     attachments,
   });
 }
-
-module.exports = sendCapsuleEmail;

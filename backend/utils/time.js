@@ -1,18 +1,17 @@
-// utils/time.js
-const MS = {
+export const MS = {
   sec: 1000,
   min: 60 * 1000,
   hr: 60 * 60 * 1000,
   day: 24 * 60 * 60 * 1000,
 };
 
-function remainingMs(target) {
+export function remainingMs(target) {
   const t = new Date(target);
   if (Number.isNaN(t.getTime())) return null;
   return t - new Date();
 }
 
-function relativeFromNow(target) {
+export function relativeFromNow(target) {
   const diff = remainingMs(target);
   if (diff == null) return null;
   if (diff <= 0) return "now";
@@ -31,7 +30,7 @@ function relativeFromNow(target) {
   return `in ${sec} seconds`;
 }
 
-function formatRemainingHMS(target) {
+export function formatRemainingHMS(target) {
   const diff = remainingMs(target);
   if (diff == null) return "";
   const d = Math.max(0, diff);
@@ -41,7 +40,7 @@ function formatRemainingHMS(target) {
   return `${hh}:${mm}:${ss}`;
 }
 
-function formatLocal(dt) {
+export function formatLocal(dt) {
   const d = new Date(dt);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleString();
@@ -51,7 +50,7 @@ function formatLocal(dt) {
  * Decide which reminder to send given now and target time.
  * Returns a stage key or null if none due.
  */
-function nextReminderStage(target, sentSet = new Set()) {
+export function nextReminderStage(target, sentSet = new Set()) {
   const diff = remainingMs(target);
   if (diff == null) return null;
   if (diff <= 0) return null;
@@ -65,17 +64,7 @@ function nextReminderStage(target, sentSet = new Set()) {
   ];
 
   for (const s of stages) {
-    // A stage is due if we are within its window: (ms <= stage && not already sent)
     if (diff <= s.ms && !sentSet.has(s.key)) return s.key;
   }
   return null;
 }
-
-module.exports = {
-  MS,
-  remainingMs,
-  relativeFromNow,
-  formatRemainingHMS,
-  formatLocal,
-  nextReminderStage,
-};

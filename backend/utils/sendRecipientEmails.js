@@ -1,12 +1,11 @@
-// utils/sendRecipientEmails.js
-const sendEmail = require("./sendEmail");
-const { relativeFromNow, formatLocal } = require("./time");
+import sendEmail from "./sendEmail.js";
+import { relativeFromNow, formatLocal } from "./time.js";
 
 function safe(str, fallback = "") {
   return (str ?? "").toString().trim() || fallback;
 }
 
-async function sendReceivedEmail({ to, senderName, title, unlockAt, shareLink }) {
+export async function sendReceivedEmail({ to, senderName, title, unlockAt, shareLink }) {
   const unlockIn = unlockAt ? relativeFromNow(unlockAt) : null;
   const unlockLocal = unlockAt ? formatLocal(unlockAt) : null;
 
@@ -41,7 +40,7 @@ async function sendReceivedEmail({ to, senderName, title, unlockAt, shareLink })
   return sendEmail({ to, subject, text, html });
 }
 
-async function sendUnlockedEmail({ to, senderName, title, shareLink, messagePreview }) {
+export async function sendUnlockedEmail({ to, senderName, title, shareLink, messagePreview }) {
   const subject = `🔓 Your Time Capsule from ${safe(senderName, "someone")} is unlocked`;
   const text =
     `It’s open now!\n\n` +
@@ -68,5 +67,3 @@ async function sendUnlockedEmail({ to, senderName, title, shareLink, messagePrev
 
   return sendEmail({ to, subject, text, html });
 }
-
-module.exports = { sendReceivedEmail, sendUnlockedEmail };
