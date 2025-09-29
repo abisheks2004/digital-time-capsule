@@ -1,15 +1,15 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const auth = require("../middleware/auth"); // import auth middleware
+// routes/auth.js
+import express from "express";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 // Generate Token
 const generateToken = (user) => {
-  // Include both id and email in the JWT
   return jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 };
 
@@ -30,7 +30,7 @@ router.post("/signup", async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateToken(user), // ✅ pass the user object
+      token: generateToken(user),
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -52,13 +52,12 @@ router.post("/login", async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateToken(user), // ✅ pass the user object
+      token: generateToken(user),
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
-
 
 // ✅ Get current user (Profile)
 router.get("/me", auth, async (req, res) => {
@@ -72,4 +71,4 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router; // ✅ ESM default export
