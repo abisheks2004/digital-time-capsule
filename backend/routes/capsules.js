@@ -38,7 +38,6 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({ error: "Invalid recipientEmail" });
     }
 
-    // generate short token only (no domain)
     const shareToken = crypto.randomBytes(10).toString("hex") + "-" + Date.now().toString(36);
 
     const capsule = new Capsule({
@@ -50,13 +49,12 @@ router.post("/", auth, async (req, res) => {
       unlockDate: parsedUnlock,
       shared: !!shared,
       attachments: attachments || [],
-      shareLink: shareToken,  // <-- only token
+      shareLink: shareToken,
       notified: false,
     });
 
     await capsule.save();
 
-    // build URL only when responding/sending email
     const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink}`;
 
     if (recipientEmail &&
@@ -74,13 +72,12 @@ router.post("/", auth, async (req, res) => {
       ).catch((e) => console.error("Immediate recipient email failed:", e.message));
     }
 
-    res.status(201).json({ success: true, capsule, shareUrl }); // send shareUrl back
+    res.status(201).json({ success: true, capsule, shareUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 // GET all capsules of logged-in user
 router.get("/", auth, async (req, res) => {
@@ -96,11 +93,15 @@ router.get("/", auth, async (req, res) => {
 // GET capsule by shareLink (public access)
 router.get("/share/:link", async (req, res) => {
   try {
-    const capsule = await Capsule.findOne({ shareLink: req.params.link });
-    if (!capsule) return res.status(404).json({ error: "Capsule not found" });
+    const capsule = await Capsule.findOne({ shareLink: req.params.link, shared: true });
+    if (!capsule) return res.status(404).json({ error: "Capsule not found or not shared" });
 
     const isUnlocked = new Date(capsule.unlockDate) <= new Date();
-    res.json({ ...capsule.toObject(), isUnlocked });
+    if (!isUnlocked) {
+      return res.status(403).json({ error: "Capsule is locked until its unlock date" });
+    }
+
+    res.json({ success: true, capsule });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -112,9 +113,7 @@ router.put("/:id", auth, async (req, res) => {
   try {
     const capsule = await Capsule.findById(req.params.id);
     if (!capsule) return res.status(404).json({ error: "Capsule not found" });
-    if (capsule.user.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Not authorized" });
-    }
+    if (capsule.user.toString() !== req.user.id) return res.status(403).json({ error: "Not authorized" });
 
     const { message, unlockDate, shared, attachments, recipientEmail, title } = req.body;
 
@@ -129,24 +128,15 @@ router.put("/:id", auth, async (req, res) => {
     if (shared !== undefined) capsule.shared = !!shared;
     if (attachments) capsule.attachments = attachments;
     if (recipientEmail !== undefined) {
-      if (recipientEmail && !isEmail(recipientEmail)) {
-        return res.status(400).json({ error: "Invalid recipientEmail" });
-      }
+      if (recipientEmail && !isEmail(recipientEmail)) return res.status(400).json({ error: "Invalid recipientEmail" });
       capsule.recipientEmail = recipientEmail?.trim() || "";
     }
 
-    // After capsule.save()
-await capsule.save();
+    await capsule.save();
 
-const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+    const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
 
-res.status(201).json({
-  success: true,
-  capsule,
-  shareUrl,   // ✅ send full share URL
-});
-
-    res.json({ success: true, capsule });
+    res.status(200).json({ success: true, capsule, shareUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -158,9 +148,8 @@ router.delete("/:id", auth, async (req, res) => {
   try {
     const capsule = await Capsule.findById(req.params.id);
     if (!capsule) return res.status(404).json({ error: "Capsule not found" });
-    if (capsule.user.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Not authorized" });
-    }
+    if (capsule.user.toString() !== req.user.id) return res.status(403).json({ error: "Not authorized" });
+
     await capsule.deleteOne();
     res.json({ success: true, message: "Capsule deleted" });
   } catch (err) {

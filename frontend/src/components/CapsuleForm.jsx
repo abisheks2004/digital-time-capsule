@@ -187,15 +187,7 @@ export default function CapsuleForm() {
         {loading ? "Creating..." : "Create Capsule"}
       </motion.button>
 
-      {/* Share Link */}
-      {link && (
-        <p className="mt-4 text-center text-sm text-[#f87171] dark:text-black break-all">
-          ✅ Share this link:{" "}
-          <a href={link} target="_blank" className="underline hover:text-[#facc15]">
-            {link}
-          </a>
-        </p>
-      )}
+
     </motion.form>
   );
 }

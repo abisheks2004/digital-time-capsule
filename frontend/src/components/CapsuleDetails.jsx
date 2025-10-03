@@ -16,7 +16,9 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
 
   const token = localStorage.getItem("token");
   const isUnlocked = new Date(capsule.unlockDate) <= new Date();
-  const shareUrl = `${API_URL}/api/capsules/share/${capsule._id}`;
+const FRONTEND_URL = import.meta.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
+const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+
 
   // DELETE capsule
   const handleDelete = async () => {

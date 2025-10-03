@@ -1,5 +1,5 @@
 // src/components/ShareOptions.jsx
-import { FaWhatsapp, FaTwitter, FaEnvelope, FaLink, FaDownload } from "react-icons/fa";
+import { FaWhatsapp, FaEnvelope, FaLink, FaDownload } from "react-icons/fa";
 
 /**
  * ShareOptions Component
@@ -25,12 +25,19 @@ export default function ShareOptions({ shareUrl, capsule }) {
 
   // Download capsule as text
   const handleDownload = () => {
-    const blob = new Blob(
-      [
-        `Title: ${capsule.title || "Untitled"}\n\nUnlock Date: ${capsule.unlockDate}\n\nMessage:\n${capsule.message}`,
-      ],
-      { type: "text/plain" }
-    );
+    const unlockDateStr = capsule.unlockDate
+      ? new Date(capsule.unlockDate).toLocaleString()
+      : "N/A";
+
+    let content = `Title: ${capsule.title || "Untitled"}\n`;
+    content += `Unlock Date: ${unlockDateStr}\n\n`;
+    content += `Message:\n${capsule.message || ""}\n`;
+
+    if (capsule.attachments && capsule.attachments.length > 0) {
+      content += `\nAttachments:\n${capsule.attachments.join("\n")}\n`;
+    }
+
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -59,7 +66,6 @@ export default function ShareOptions({ shareUrl, capsule }) {
         <FaEnvelope /> Email
       </a>
 
-     
       <button
         onClick={() => safeCopy(shareUrl)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-700 text-white font-medium shadow hover:bg-gray-800 transition"
