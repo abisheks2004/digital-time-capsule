@@ -7,18 +7,13 @@ import sendCapsuleEmail from "../utils/sendCapsuleEmail.js";
 const router = express.Router();
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
 
+// Email validation
 const isEmail = (e) => /^\S+@\S+\.\S+$/.test(String(e || "").trim());
-const toLocal = (d) => {
-  const dt = d instanceof Date ? d : new Date(d);
-  return Number.isNaN(dt.getTime()) ? "" : dt.toLocaleString();
-};
+
+// Parse unlockDate consistently
 const parseUnlockDate = (val) => {
   if (!val) return null;
-  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(val));
-  if (m) {
-    const [_, dd, mm, yyyy] = m;
-    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 0, 0, 0, 0);
-  }
+  // If frontend sends "YYYY-MM-DDTHH:mm"
   const d = new Date(val);
   return Number.isNaN(d.getTime()) ? null : d;
 };
@@ -28,15 +23,12 @@ router.post("/", auth, async (req, res) => {
   try {
     const { message, unlockDate, shared, attachments, recipientEmail, title } = req.body;
 
-    if (!message || !unlockDate) {
-      return res.status(400).json({ error: "Message and unlockDate are required" });
-    }
+    if (!message || !unlockDate) return res.status(400).json({ error: "Message and unlockDate required" });
 
     const parsedUnlock = parseUnlockDate(unlockDate);
     if (!parsedUnlock) return res.status(400).json({ error: "Invalid unlockDate" });
-    if (recipientEmail && !isEmail(recipientEmail)) {
-      return res.status(400).json({ error: "Invalid recipientEmail" });
-    }
+
+    if (recipientEmail && !isEmail(recipientEmail)) return res.status(400).json({ error: "Invalid recipientEmail" });
 
     const shareToken = crypto.randomBytes(10).toString("hex") + "-" + Date.now().toString(36);
 
@@ -46,7 +38,7 @@ router.post("/", auth, async (req, res) => {
       recipientEmail: recipientEmail?.trim() || "",
       title: title || "Time Capsule",
       message,
-      unlockDate: parsedUnlock,
+      unlockDate: parsedUnlock, // store as UTC
       shared: !!shared,
       attachments: attachments || [],
       shareLink: shareToken,
@@ -57,19 +49,15 @@ router.post("/", auth, async (req, res) => {
 
     const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink}`;
 
-    if (recipientEmail &&
-        recipientEmail.trim().toLowerCase() !== (req.user.email || "").toLowerCase()) {
-      const fromName = req.user?.name || req.user?.email || "Someone";
-      const displayUnlock = toLocal(parsedUnlock);
-
+    if (recipientEmail && recipientEmail.trim().toLowerCase() !== req.user.email.toLowerCase()) {
       sendCapsuleEmail(
         recipientEmail.trim(),
         title || "Time Capsule",
-        displayUnlock,
+        parsedUnlock.toISOString(),
         shareUrl,
         Array.isArray(attachments) ? attachments : [],
-        fromName
-      ).catch((e) => console.error("Immediate recipient email failed:", e.message));
+        req.user.name || req.user.email
+      ).catch((e) => console.error("Recipient email failed:", e.message));
     }
 
     res.status(201).json({ success: true, capsule, shareUrl });
@@ -96,10 +84,8 @@ router.get("/share/:link", async (req, res) => {
     const capsule = await Capsule.findOne({ shareLink: req.params.link, shared: true });
     if (!capsule) return res.status(404).json({ error: "Capsule not found or not shared" });
 
-    const isUnlocked = new Date(capsule.unlockDate) <= new Date();
-    if (!isUnlocked) {
-      return res.status(403).json({ error: "Capsule is locked until its unlock date" });
-    }
+    const isUnlocked = new Date(capsule.unlockDate).getTime() <= Date.now();
+    if (!isUnlocked) return res.status(403).json({ error: "Capsule is locked until unlock date" });
 
     res.json({ success: true, capsule });
   } catch (err) {
