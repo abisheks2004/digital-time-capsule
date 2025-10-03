@@ -23,7 +23,7 @@ const parseUnlockDate = (val) => {
   return Number.isNaN(d.getTime()) ? null : d;
 };
 
-// CREATE capsule (emails recipient only)
+// CREATE capsule
 router.post("/", auth, async (req, res) => {
   try {
     const { message, unlockDate, shared, attachments, recipientEmail, title } = req.body;
@@ -38,11 +38,7 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({ error: "Invalid recipientEmail" });
     }
 
-    if (recipientEmail && req.user?.email &&
-        recipientEmail.trim().toLowerCase() === req.user.email.toLowerCase()) {
-      console.warn("Recipient equals sender; skipping immediate email.");
-    }
-
+    // generate short token only (no domain)
     const shareToken = crypto.randomBytes(10).toString("hex") + "-" + Date.now().toString(36);
 
     const capsule = new Capsule({
@@ -54,15 +50,17 @@ router.post("/", auth, async (req, res) => {
       unlockDate: parsedUnlock,
       shared: !!shared,
       attachments: attachments || [],
-      shareLink: shareToken,
+      shareLink: shareToken,  // <-- only token
       notified: false,
     });
 
     await capsule.save();
 
+    // build URL only when responding/sending email
+    const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink}`;
+
     if (recipientEmail &&
         recipientEmail.trim().toLowerCase() !== (req.user.email || "").toLowerCase()) {
-      const shareLink = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
       const fromName = req.user?.name || req.user?.email || "Someone";
       const displayUnlock = toLocal(parsedUnlock);
 
@@ -70,18 +68,19 @@ router.post("/", auth, async (req, res) => {
         recipientEmail.trim(),
         title || "Time Capsule",
         displayUnlock,
-        shareLink,
+        shareUrl,
         Array.isArray(attachments) ? attachments : [],
         fromName
       ).catch((e) => console.error("Immediate recipient email failed:", e.message));
     }
 
-    res.status(201).json({ success: true, capsule });
+    res.status(201).json({ success: true, capsule, shareUrl }); // send shareUrl back
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 // GET all capsules of logged-in user
 router.get("/", auth, async (req, res) => {
