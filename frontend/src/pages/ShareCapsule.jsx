@@ -10,6 +10,7 @@ export default function ShareCapsule() {
   const [error, setError] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const FRONTEND_URL = import.meta.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
 
   useEffect(() => {
     const fetchCapsule = async () => {
@@ -35,6 +36,16 @@ export default function ShareCapsule() {
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
   if (!capsule) return null;
 
+  // Convert UTC date to local date string (IST or user timezone)
+  const unlockDateLocal = new Date(capsule.unlockDate).toLocaleString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
   const isUnlocked = new Date(capsule.unlockDate) <= new Date();
 
   return (
@@ -48,7 +59,7 @@ export default function ShareCapsule() {
       <p className="mb-4 break-words text-lg">
         {isUnlocked
           ? capsule.message
-          : `This capsule is locked until ${new Date(capsule.unlockDate).toLocaleString()}`}
+          : `This capsule is locked until ${unlockDateLocal}`}
       </p>
 
       {isUnlocked && capsule.attachments?.length > 0 && (
@@ -68,7 +79,7 @@ export default function ShareCapsule() {
 
       {isUnlocked && (
         <ShareOptions
-          shareUrl={`${import.meta.env.FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`}
+          shareUrl={`${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`}
           capsule={capsule}
         />
       )}

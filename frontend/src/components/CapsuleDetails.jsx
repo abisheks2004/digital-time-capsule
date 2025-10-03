@@ -4,11 +4,17 @@ import axios from "axios";
 import ShareOptions from "./ShareOptions";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const FRONTEND_URL = import.meta.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
+const FRONTEND_URL =
+  import.meta.env.FRONTEND_URL ||
+  "https://digital-time-capsule-five.vercel.app";
 
 export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
-  // Convert unlockDate to local ISO string for <input type="datetime-local">
-  const localInputDate = new Date(capsule.unlockDate).toISOString().slice(0, 16);
+  // ✅ Convert UTC to local ISO for <input type="datetime-local">
+  const utcDate = new Date(capsule.unlockDate);
+  const tzOffset = utcDate.getTimezoneOffset() * 60000; // in ms
+  const localInputDate = new Date(utcDate.getTime() - tzOffset)
+    .toISOString()
+    .slice(0, 16);
 
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -20,11 +26,11 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
 
   const token = localStorage.getItem("token");
 
-  // Correct unlock logic using timestamps
+  // ✅ Unlock logic using timestamps
   const unlockDate = new Date(capsule.unlockDate);
   const isUnlocked = unlockDate.getTime() <= Date.now();
 
-  // Display unlock date in IST
+  // ✅ Display unlock date in IST
   const unlockDateStr = unlockDate.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
@@ -64,7 +70,7 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
         `${API_URL}/api/capsules/${capsule._id}`,
         {
           message: formData.message,
-          unlockDate: formData.unlockDate,
+          unlockDate: formData.unlockDate, // local ISO will be converted to UTC by backend
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -97,12 +103,18 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
 
   return (
     <motion.div className="p-6 rounded-2xl shadow-xl max-w-xl mx-auto my-6 border bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600">
-      <h2 className={`text-2xl font-bold mb-4 ${isUnlocked ? "text-yellow-600" : "text-red-500"}`}>
+      <h2
+        className={`text-2xl font-bold mb-4 ${
+          isUnlocked ? "text-yellow-600" : "text-red-500"
+        }`}
+      >
         {isUnlocked ? "Unlocked Time Capsule 🔓" : "Locked Time Capsule 🔒"}
       </h2>
 
       <p className="mb-4 break-words text-white text-2xl">
-        {isUnlocked ? capsule.message : `Locked until ${unlockDateStr}`}
+        {isUnlocked
+          ? capsule.message
+          : `Locked until ${unlockDateStr}`}
       </p>
 
       {/* Share Toggle */}
@@ -126,7 +138,11 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
           ></div>
         </div>
         <span className="ml-3 font-medium text-white">
-          {toggling ? "Saving..." : capsule.shared ? "Shared 🌍" : "Share 🌍"}
+          {toggling
+            ? "Saving..."
+            : capsule.shared
+            ? "Shared 🌍"
+            : "Share 🌍"}
         </span>
       </label>
 
@@ -158,21 +174,31 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
             <h3 className="text-lg font-semibold mb-2">Edit Time Capsule</h3>
             <textarea
               className="w-full p-2 border rounded mb-3"
-              rows="4"
+              rows={4}
               value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
             />
             <input
               type="datetime-local"
               className="w-full p-2 border rounded mb-3"
               value={formData.unlockDate}
-              onChange={(e) => setFormData({ ...formData, unlockDate: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, unlockDate: e.target.value })
+              }
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setEditing(false)} className="px-4 py-2 bg-gray-400 rounded-md">
+              <button
+                onClick={() => setEditing(false)}
+                className="px-4 py-2 bg-gray-400 rounded-md"
+              >
                 Cancel
               </button>
-              <button onClick={handleEditSubmit} className="px-4 py-2 bg-green-500 text-white rounded-md">
+              <button
+                onClick={handleEditSubmit}
+                className="px-4 py-2 bg-green-500 text-white rounded-md"
+              >
                 Save
               </button>
             </div>
