@@ -4,21 +4,38 @@ import axios from "axios";
 import ShareOptions from "./ShareOptions";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const FRONTEND_URL = import.meta.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
 
 export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
+  // Convert unlockDate to local ISO string for <input type="datetime-local">
+  const localInputDate = new Date(capsule.unlockDate).toISOString().slice(0, 16);
+
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [toggling, setToggling] = useState(false); // ✅ added state for toggle loading
+  const [toggling, setToggling] = useState(false);
   const [formData, setFormData] = useState({
     message: capsule.message,
-    unlockDate: capsule.unlockDate.slice(0, 16),
+    unlockDate: localInputDate,
   });
 
   const token = localStorage.getItem("token");
-  const isUnlocked = new Date(capsule.unlockDate) <= new Date();
-const FRONTEND_URL = import.meta.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
-const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
 
+  // Correct unlock logic using timestamps
+  const unlockDate = new Date(capsule.unlockDate);
+  const isUnlocked = unlockDate.getTime() <= Date.now();
+
+  // Display unlock date in IST
+  const unlockDateStr = unlockDate.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // Build share URL
+  const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
 
   // DELETE capsule
   const handleDelete = async () => {
@@ -59,7 +76,7 @@ const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._
     }
   };
 
-  // ✅ Share toggle (with loading state)
+  // TOGGLE share
   const handleShareToggle = async () => {
     if (!token) return alert("You are not logged in.");
     try {
@@ -85,12 +102,10 @@ const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._
       </h2>
 
       <p className="mb-4 break-words text-white text-2xl">
-        {isUnlocked
-          ? capsule.message
-          : `Locked until ${new Date(capsule.unlockDate).toLocaleString()}`}
+        {isUnlocked ? capsule.message : `Locked until ${unlockDateStr}`}
       </p>
 
-      {/* ✅ Share Toggle */}
+      {/* Share Toggle */}
       <label className="relative inline-flex items-center cursor-pointer mt-2">
         <input
           type="checkbox"
@@ -116,7 +131,7 @@ const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._
       </label>
 
       {/* Share Options */}
-      <ShareOptions shareUrl={shareUrl} disabled={false} />
+      <ShareOptions shareUrl={shareUrl} capsule={capsule} />
 
       {/* Edit & Delete Buttons */}
       <motion.button
