@@ -8,6 +8,8 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import CreateCapsule from "./pages/CreateCapsule";
 import BackButton from "./components/BackButton";
+import ShareCapsule from "./pages/ShareCapsule";
+
 
 export default function App() {
   const location = useLocation();
@@ -67,6 +69,8 @@ export default function App() {
           <Route path="/profile" element={token ? <ProfilePage /> : <Navigate to="/" />} />
           <Route path="/create" element={token ? <CreateCapsule /> : <Navigate to="/" />} />
       
+      {/* Public Share Route */}
+  <Route path="/capsule/share/:shareLink" element={<ShareCapsule />} />
 
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" />} />
