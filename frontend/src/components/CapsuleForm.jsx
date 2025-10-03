@@ -56,7 +56,8 @@ export default function CapsuleForm() {
 
       const capsule = res?.data?.capsule || {};
       const shareId = capsule.shareLink || capsule._id;
-      setLink(`${FRONTEND_URL}/capsule/share/${shareId}`); // FIX: path is /capsule/share
+      setLink(res?.data?.shareUrl || "");
+// FIX: path is /capsule/share
 
       // Reset form
       setMessage("");

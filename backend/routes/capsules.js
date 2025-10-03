@@ -135,7 +135,17 @@ router.put("/:id", auth, async (req, res) => {
       capsule.recipientEmail = recipientEmail?.trim() || "";
     }
 
-    await capsule.save();
+    // After capsule.save()
+await capsule.save();
+
+const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+
+res.status(201).json({
+  success: true,
+  capsule,
+  shareUrl,   // ✅ send full share URL
+});
+
     res.json({ success: true, capsule });
   } catch (err) {
     console.error(err);
