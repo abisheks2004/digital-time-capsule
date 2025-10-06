@@ -1,20 +1,17 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 export default function CapsuleForm() {
+  const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [unlockDate, setUnlockDate] = useState("");
   const [unlockTime, setUnlockTime] = useState("");
   const [attachments, setAttachments] = useState([]);
-  const [recipientEmail, setRecipientEmail] = useState(""); // FIX: recipient, not userEmail
-  const [title, setTitle] = useState(""); // optional
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [link, setLink] = useState("");
 
   const handleFiles = (e) => {
     setAttachments([...attachments, ...Array.from(e.target.files || [])]);
@@ -23,15 +20,11 @@ export default function CapsuleForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setLink("");
 
     try {
-      // Build a Date-parsable string (yyyy-mm-dd or yyyy-mm-ddTHH:mm both OK on backend)
       const dateTime = unlockTime ? `${unlockDate}T${unlockTime}` : unlockDate;
 
-      // Basic email validation on client
-      const emailOk = /^\S+@\S+\.\S+$/.test((recipientEmail || "").trim());
-      if (!emailOk) {
+      if (!/^\S+@\S+\.\S+$/.test(recipientEmail.trim())) {
         alert("Please enter a valid recipient email");
         setLoading(false);
         return;
@@ -41,31 +34,25 @@ export default function CapsuleForm() {
         title: title || "Time Capsule",
         message,
         unlockDate: dateTime,
-        recipientEmail: recipientEmail.trim(), // FIX: send as recipientEmail
-        // If you actually upload attachments, switch to FormData. This JSON example just sends names.
+        recipientEmail: recipientEmail.trim(),
         attachments: attachments.map((f) => ({ name: f.name })),
       };
 
       const token = localStorage.getItem("token");
-      const res = await axios.post(`${API_URL}/api/capsules`, payload, {
+      await axios.post(`${API_URL}/api/capsules`, payload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const capsule = res?.data?.capsule || {};
-      const shareId = capsule.shareLink || capsule._id;
-      setLink(res?.data?.shareUrl || "");
-// FIX: path is /capsule/share
-
       // Reset form
+      setTitle("");
       setMessage("");
       setUnlockDate("");
       setUnlockTime("");
       setAttachments([]);
       setRecipientEmail("");
-      setTitle("");
 
       alert("✅ Capsule created! The recipient will receive an email.");
     } catch (err) {
@@ -84,10 +71,10 @@ export default function CapsuleForm() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Optional Title */}
+      {/* Title */}
       <div>
         <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
-          Title 
+          Title
         </label>
         <input
           type="text"
@@ -155,7 +142,7 @@ export default function CapsuleForm() {
         />
       </div>
 
-      {/* Attachments (names only unless you implement uploads) */}
+      {/* Attachments */}
       <div>
         <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
           Attach Media (Image, Audio, Video)
@@ -186,8 +173,6 @@ export default function CapsuleForm() {
       >
         {loading ? "Creating..." : "Create Capsule"}
       </motion.button>
-
-
     </motion.form>
   );
 }

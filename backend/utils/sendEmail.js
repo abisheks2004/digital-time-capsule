@@ -1,29 +1,29 @@
-// sendEmail.js
-import { Resend } from "resend";
+// backend/utils/sendEmail.js
 import dotenv from "dotenv";
+import { Resend } from "resend";
 
-// Load environment variables
 dotenv.config();
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function sendEmail({ to, subject, text, html, attachments = [] }) {
-  try {
-    const from = process.env.MAIL_FROM || "Digital Time Capsule <onboarding@resend.dev>";
+export default async function sendEmail({ to, subject, text, html }) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("❌ Missing RESEND_API_KEY in environment");
+  }
 
+  try {
     const response = await resend.emails.send({
-      from,
+      from: process.env.MAIL_FROM || "Digital Time Capsule <onboarding@resend.dev>",
       to,
       subject,
+      html: html || `<p>${text}</p>`,
       text,
-      html: html || (text ? `<p>${String(text).replace(/\n/g, "<br/>")}</p>` : undefined),
-      attachments, // Resend supports Buffer/File attachments
     });
 
-    console.log("✅ Email sent via Resend:", response.id, "->", to);
+    console.log(`✅ Email sent successfully → ${to}`);
     return response;
   } catch (error) {
-    console.error("❌ Email send failed via Resend:", error.message);
-    console.error("📩 Error details:", error);
-    return null;
+    console.error(`❌ Resend API error for ${to}:`, error.message);
+    throw error;
   }
 }

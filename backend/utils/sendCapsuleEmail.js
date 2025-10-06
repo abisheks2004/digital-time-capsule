@@ -47,3 +47,17 @@ export default async function sendCapsuleEmail(
     attachments,
   });
 }
+
+try {
+  await sendCapsuleEmail(
+    recipientEmail.trim(),
+    title || "Time Capsule",
+    parsedUnlock.toISOString(),
+    shareUrl,
+    attachments,
+    req.user.name || req.user.email
+  );
+  console.log("📧 Recipient email sent to", recipientEmail);
+} catch (e) {
+  console.error("❌ Recipient email failed:", e.message);
+}
