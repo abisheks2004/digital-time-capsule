@@ -13,7 +13,7 @@ export function startReminderCron() {
     running = true;
 
     try {
-      // Upcoming capsules with recipient and not yet unlocked
+      // Fetch upcoming capsules with a recipient and not yet unlocked
       const now = new Date();
       const items = await Capsule.find({
         recipientEmail: { $exists: true, $type: "string", $ne: "" },
@@ -35,10 +35,15 @@ export function startReminderCron() {
         const stage = nextReminderStage(cap.unlockDate, sentSet);
         if (!stage) continue;
 
-        const to = cap.recipientEmail.trim();
+        // ✅ Safe recipient email
+        const to = (cap.recipientEmail || "").trim();
+        if (!to) {
+          console.warn(`⚠️ Skipping capsule ${cap._id}: invalid recipientEmail`, cap.recipientEmail);
+          continue;
+        }
+
         const fromName = cap.userEmail || "Someone";
         const link = `${FRONTEND_URL}/capsule/share/${cap.shareLink || cap._id}`;
-
         const unlockIn = relativeFromNow(cap.unlockDate);
         const unlockAt = formatLocal(cap.unlockDate);
 
