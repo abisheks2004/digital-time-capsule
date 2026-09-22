@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import crypto from "crypto";
 import Capsule from "../models/Capsule.js";
 import auth from "../middleware/auth.js";
@@ -78,10 +79,16 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// GET capsule by shareLink (accessible once unlocked via unique link)
+// GET capsule by shareLink or _id (accessible once unlocked via unique link)
 router.get("/share/:link", async (req, res) => {
   try {
-    const capsule = await Capsule.findOne({ shareLink: req.params.link });
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.link);
+    const capsule = await Capsule.findOne({
+      $or: [
+        { shareLink: req.params.link },
+        ...(isObjectId ? [{ _id: req.params.link }] : []),
+      ],
+    });
     if (!capsule) return res.status(404).json({ error: "Capsule not found" });
 
     const isUnlocked = new Date(capsule.unlockDate).getTime() <= Date.now();
@@ -170,7 +177,7 @@ router.post("/:id/send", auth, async (req, res) => {
     res.json({ success: true, message: `Capsule link successfully sent to ${recipient}!` });
   } catch (err) {
     console.error("Manual send error:", err);
-    res.status(500).json({ error: err.message || "Failed to send email" });
+    res.status(400).json({ error: err.message || "Failed to send email" });
   }
 });
 
