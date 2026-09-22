@@ -1,10 +1,17 @@
 // src/components/ShareOptions.jsx
 import { useState } from "react";
-import { FaWhatsapp, FaEnvelope, FaLink, FaDownload, FaCheck } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { FaWhatsapp, FaLink, FaCheck, FaPaperPlane } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ShareOptions({ shareUrl, capsule }) {
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendMsg, setSendMsg] = useState("");
+
+  const token = localStorage.getItem("token");
 
   // Copy to clipboard with fallback
   const safeCopy = async (text) => {
@@ -24,77 +31,97 @@ export default function ShareOptions({ shareUrl, capsule }) {
     }
   };
 
-  // Download capsule as text
-  const handleDownload = () => {
-    const unlockDateStr = capsule.unlockDate
-      ? new Date(capsule.unlockDate).toLocaleString()
-      : "N/A";
-
-    let content = `Title: ${capsule.title || "Time Capsule"}\n`;
-    content += `Recipient: ${capsule.recipientEmail || "N/A"}\n`;
-    content += `Unlock Date: ${unlockDateStr}\n\n`;
-    content += `Message:\n${capsule.message || ""}\n`;
-
-    if (capsule.attachments && capsule.attachments.length > 0) {
-      content += `\nAttachments:\n${capsule.attachments.map(a => a.name || a.fileName || a).join("\n")}\n`;
+  // Direct backend email dispatch to recipient
+  const handleSendToRecipient = async () => {
+    if (!capsule.recipientEmail || !capsule.recipientEmail.trim()) {
+      setSendMsg("⚠️ No recipient email set! Click Edit to add one.");
+      setTimeout(() => setSendMsg(""), 3500);
+      return;
     }
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${(capsule.title || "timecapsule").replace(/\s+/g, "_")}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    try {
+      setSending(true);
+      setSendMsg("");
+      const res = await axios.post(
+        `${API_URL}/api/capsules/${capsule._id}/send`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSendMsg(`✅ ${res.data.message || `Sent to ${capsule.recipientEmail}!`}`);
+      setTimeout(() => setSendMsg(""), 4000);
+    } catch (err) {
+      console.error(err);
+      setSendMsg(
+        `❌ ${err.response?.data?.error || err.message || "Failed to send email"}`
+      );
+      setTimeout(() => setSendMsg(""), 4000);
+    } finally {
+      setSending(false);
+    }
   };
 
-  const emailSubject = encodeURIComponent(`Digital Time Capsule: ${capsule.title || "A capsule for you"}`);
-  const emailBody = encodeURIComponent(
-    `Hello,\n\nYou have received a Digital Time Capsule!\n\nTitle: ${capsule.title || "Time Capsule"}\nUnlock Link: ${shareUrl}\n\nOnce the unlock date arrives, you can open it directly using the link above.`
-  );
-
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
-      <motion.a
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        href={`https://wa.me/?text=${encodeURIComponent(`Check out this Digital Time Capsule: ${shareUrl}`)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow hover:bg-emerald-500 transition"
-      >
-        <FaWhatsapp className="text-sm" /> WhatsApp
-      </motion.a>
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2.5">
+        {/* Real Send to Recipient Button */}
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={handleSendToRecipient}
+          disabled={sending}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 hover:brightness-105 transition disabled:opacity-60"
+        >
+          {sending ? (
+            <>
+              <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+              <span>Sending...</span>
+            </>
+          ) : (
+            <>
+              <FaPaperPlane className="text-xs" />
+              <span>Send to Recipient</span>
+            </>
+          )}
+        </motion.button>
 
-      <motion.a
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        href={`mailto:${capsule.recipientEmail || ""}?subject=${emailSubject}&body=${emailBody}`}
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-500 transition"
-      >
-        <FaEnvelope className="text-sm" /> Email
-      </motion.a>
+        {/* WhatsApp Direct Link */}
+        <motion.a
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          href={`https://wa.me/?text=${encodeURIComponent(
+            `Hi! I created a Digital Time Capsule for you: "${capsule.title || "Time Capsule"}". View it here: ${shareUrl}`
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow hover:bg-emerald-500 transition"
+        >
+          <FaWhatsapp className="text-sm" /> WhatsApp
+        </motion.a>
 
-      <motion.button
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        onClick={() => safeCopy(shareUrl)}
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 border border-white/10 text-xs font-semibold shadow hover:bg-slate-700 transition"
-      >
-        {copied ? <FaCheck className="text-emerald-400 text-sm" /> : <FaLink className="text-sm" />}
-        <span>{copied ? "Link Copied!" : "Copy Link"}</span>
-      </motion.button>
+        {/* Copy Direct Link */}
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={() => safeCopy(shareUrl)}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 border border-white/10 text-xs font-semibold shadow hover:bg-slate-700 transition"
+        >
+          {copied ? <FaCheck className="text-emerald-400 text-sm" /> : <FaLink className="text-sm" />}
+          <span>{copied ? "Link Copied!" : "Copy Link"}</span>
+        </motion.button>
+      </div>
 
-      <motion.button
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        onClick={handleDownload}
-        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600/80 border border-indigo-500/40 text-indigo-100 text-xs font-semibold shadow hover:bg-indigo-600 transition"
-      >
-        <FaDownload className="text-sm" /> Download
-      </motion.button>
+      <AnimatePresence>
+        {sendMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="text-xs font-semibold text-amber-300 mt-1"
+          >
+            {sendMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

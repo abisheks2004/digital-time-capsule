@@ -6,9 +6,8 @@ import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import CreateCapsule from "./pages/CreateCapsule";
-import BackButton from "./components/BackButton";
+import EditCapsule from "./pages/EditCapsule";
 import ShareCapsule from "./pages/ShareCapsule";
-
 
 export default function App() {
   const location = useLocation();
@@ -22,8 +21,6 @@ export default function App() {
 
   return (
     <div className="app-shell text-slate-100 min-h-screen">
-      <BackButton />
-
       <nav className="sticky top-0 z-20 border-b border-white/10 px-4 py-4 backdrop-blur-xl bg-slate-950/80 shadow-lg shadow-black/40">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <motion.div
@@ -62,6 +59,7 @@ export default function App() {
           <Route path="/home" element={token ? <Home /> : <Navigate to="/" replace />} />
           <Route path="/profile" element={token ? <ProfilePage /> : <Navigate to="/" replace />} />
           <Route path="/create" element={token ? <CreateCapsule /> : <Navigate to="/" replace />} />
+          <Route path="/edit/:id" element={token ? <EditCapsule /> : <Navigate to="/" replace />} />
 
           {/* Public Share Route */}
           <Route path="/capsule/share/:shareLink" element={<ShareCapsule />} />

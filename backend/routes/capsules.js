@@ -136,11 +136,33 @@ router.delete("/:id", auth, async (req, res) => {
     if (!capsule) return res.status(404).json({ error: "Capsule not found" });
     if (capsule.user.toString() !== req.user.id) return res.status(403).json({ error: "Not authorized" });
 
-    await capsule.deleteOne();
-    res.json({ success: true, message: "Capsule deleted" });
+// SEND / RESEND to recipient
+router.post("/:id/send", auth, async (req, res) => {
+  try {
+    const capsule = await Capsule.findById(req.params.id);
+    if (!capsule) return res.status(404).json({ error: "Capsule not found" });
+    if (capsule.user.toString() !== req.user.id) return res.status(403).json({ error: "Not authorized" });
+
+    const recipient = capsule.recipientEmail?.trim();
+    if (!recipient || !isEmail(recipient)) {
+      return res.status(400).json({ error: "No valid recipient email set on this capsule" });
+    }
+
+    const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+
+    await sendCapsuleEmail(
+      recipient,
+      capsule.title || "Time Capsule",
+      capsule.unlockDate.toISOString(),
+      shareUrl,
+      capsule.attachments || [],
+      req.user.name || req.user.email
+    );
+
+    res.json({ success: true, message: `Capsule link successfully sent to ${recipient}!` });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Manual send error:", err);
+    res.status(500).json({ error: err.message || "Failed to send email" });
   }
 });
 
