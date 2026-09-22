@@ -1,17 +1,17 @@
 // src/components/ShareOptions.jsx
-import { FaWhatsapp, FaEnvelope, FaLink, FaDownload } from "react-icons/fa";
+import { useState } from "react";
+import { FaWhatsapp, FaEnvelope, FaLink, FaDownload, FaCheck } from "react-icons/fa";
+import { motion } from "framer-motion";
 
-/**
- * ShareOptions Component
- * @param {string} shareUrl - URL to be shared
- * @param {object} capsule - Capsule data for download
- */
 export default function ShareOptions({ shareUrl, capsule }) {
+  const [copied, setCopied] = useState(false);
+
   // Copy to clipboard with fallback
   const safeCopy = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert("Link copied to clipboard!");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       const tmp = document.createElement("input");
       document.body.appendChild(tmp);
@@ -19,7 +19,8 @@ export default function ShareOptions({ shareUrl, capsule }) {
       tmp.select();
       document.execCommand("copy");
       document.body.removeChild(tmp);
-      alert("Link copied (fallback)!");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -29,12 +30,13 @@ export default function ShareOptions({ shareUrl, capsule }) {
       ? new Date(capsule.unlockDate).toLocaleString()
       : "N/A";
 
-    let content = `Title: ${capsule.title || "Untitled"}\n`;
+    let content = `Title: ${capsule.title || "Time Capsule"}\n`;
+    content += `Recipient: ${capsule.recipientEmail || "N/A"}\n`;
     content += `Unlock Date: ${unlockDateStr}\n\n`;
     content += `Message:\n${capsule.message || ""}\n`;
 
     if (capsule.attachments && capsule.attachments.length > 0) {
-      content += `\nAttachments:\n${capsule.attachments.join("\n")}\n`;
+      content += `\nAttachments:\n${capsule.attachments.map(a => a.name || a.fileName || a).join("\n")}\n`;
     }
 
     const blob = new Blob([content], { type: "text/plain" });
@@ -48,37 +50,51 @@ export default function ShareOptions({ shareUrl, capsule }) {
     URL.revokeObjectURL(url);
   };
 
+  const emailSubject = encodeURIComponent(`Digital Time Capsule: ${capsule.title || "A capsule for you"}`);
+  const emailBody = encodeURIComponent(
+    `Hello,\n\nYou have received a Digital Time Capsule!\n\nTitle: ${capsule.title || "Time Capsule"}\nUnlock Link: ${shareUrl}\n\nOnce the unlock date arrives, you can open it directly using the link above.`
+  );
+
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
-      <a
-        href={`https://wa.me/?text=${encodeURIComponent(shareUrl)}`}
+    <div className="flex flex-wrap items-center gap-2.5">
+      <motion.a
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        href={`https://wa.me/?text=${encodeURIComponent(`Check out this Digital Time Capsule: ${shareUrl}`)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500 text-white font-medium shadow hover:bg-green-600 transition"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold shadow hover:bg-emerald-500 transition"
       >
-        <FaWhatsapp /> WhatsApp
-      </a>
+        <FaWhatsapp className="text-sm" /> WhatsApp
+      </motion.a>
 
-      <a
-        href={`mailto:?subject=${encodeURIComponent("Check this Time Capsule")}&body=${encodeURIComponent(shareUrl)}`}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
+      <motion.a
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        href={`mailto:${capsule.recipientEmail || ""}?subject=${emailSubject}&body=${emailBody}`}
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow hover:bg-blue-500 transition"
       >
-        <FaEnvelope /> Email
-      </a>
+        <FaEnvelope className="text-sm" /> Email
+      </motion.a>
 
-      <button
+      <motion.button
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
         onClick={() => safeCopy(shareUrl)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-700 text-white font-medium shadow hover:bg-gray-800 transition"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 border border-white/10 text-xs font-semibold shadow hover:bg-slate-700 transition"
       >
-        <FaLink /> Copy Link
-      </button>
+        {copied ? <FaCheck className="text-emerald-400 text-sm" /> : <FaLink className="text-sm" />}
+        <span>{copied ? "Link Copied!" : "Copy Link"}</span>
+      </motion.button>
 
-      <button
+      <motion.button
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
         onClick={handleDownload}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700 transition"
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600/80 border border-indigo-500/40 text-indigo-100 text-xs font-semibold shadow hover:bg-indigo-600 transition"
       >
-        <FaDownload /> Download
-      </button>
+        <FaDownload className="text-sm" /> Download
+      </motion.button>
     </div>
   );
 }

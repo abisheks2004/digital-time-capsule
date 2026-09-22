@@ -17,9 +17,9 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
 
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [toggling, setToggling] = useState(false);
   const [formData, setFormData] = useState({
     title: capsule.title || "",
+    recipientEmail: capsule.recipientEmail || "",
     message: capsule.message || "",
     unlockDate: localInputDate,
   });
@@ -66,6 +66,7 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
         `${API_URL}/api/capsules/${capsule._id}`,
         {
           title: formData.title,
+          recipientEmail: formData.recipientEmail,
           message: formData.message,
           unlockDate: formData.unlockDate,
         },
@@ -79,29 +80,11 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
     }
   };
 
-  const handleShareToggle = async () => {
-    if (!token) return alert("You are not logged in.");
-    try {
-      setToggling(true);
-      const res = await axios.put(
-        `${API_URL}/api/capsules/${capsule._id}`,
-        { shared: !capsule.shared },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (onUpdate) onUpdate(res.data.capsule);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to toggle share");
-    } finally {
-      setToggling(false);
-    }
-  };
-
   return (
     <motion.div
       whileHover={{ y: -3 }}
       transition={{ duration: 0.2 }}
-      className="glass-panel relative overflow-hidden rounded-[26px] border border-white/10 p-6 sm:p-7 shadow-[0_18px_50px_rgba(0,0,0,0.35)] transition-all hover:border-amber-400/30 hover:shadow-[0_20px_50px_rgba(251,191,36,0.1)]"
+      className="glass-panel relative overflow-hidden rounded-[26px] border border-white/10 p-6 sm:p-7 shadow-[0_18px_50px_rgba(0,0,0,0.35)] transition-all hover:border-amber-400/30"
     >
       {/* Top Header Row */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -113,14 +96,8 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
                 : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
             }`}
           >
-            <span>{isUnlocked ? "🔓 Unlocked" : "🔒 Sealed & Locked"}</span>
+            <span>{isUnlocked ? "🔓 UNLOCKED" : "🔒 SEALED & LOCKED"}</span>
           </span>
-
-          {capsule.shared && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-1 text-xs font-semibold text-emerald-300">
-              🌍 Shared
-            </span>
-          )}
         </div>
 
         <div className="text-xs text-slate-400">
@@ -128,29 +105,29 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
         </div>
       </div>
 
-      {/* Title */}
-      <h3 className="text-xl font-black tracking-wide text-white mb-2">
-        {capsule.title || "Untitled Capsule"}
+      {/* Capsule Title */}
+      <h3 className="text-2xl font-black tracking-wide text-white mb-1.5">
+        {capsule.title || "Time Capsule"}
       </h3>
 
-      {/* Recipient info */}
-      {capsule.recipientEmail && (
-        <div className="text-xs text-slate-400 mb-4 flex items-center gap-1.5">
-          <span>✉️ Recipient:</span>
-          <span className="text-amber-300/90 font-medium">{capsule.recipientEmail}</span>
-        </div>
-      )}
+      {/* Recipient Information */}
+      <div className="text-xs text-slate-400 mb-4 flex items-center gap-1.5">
+        <span>✉️ Recipient:</span>
+        <span className="text-amber-300 font-semibold">
+          {capsule.recipientEmail || "Recipient email not set"}
+        </span>
+      </div>
 
-      {/* Message Content */}
-      <div className="rounded-2xl bg-slate-950/60 border border-white/5 p-4 mb-5">
+      {/* Message Content Area */}
+      <div className="rounded-2xl bg-slate-950/70 border border-white/5 p-5 mb-5 shadow-inner">
         {isUnlocked ? (
           <p className="text-base text-slate-100 whitespace-pre-wrap leading-relaxed">
             {capsule.message}
           </p>
         ) : (
-          <div className="space-y-1.5 text-center py-4">
-            <div className="text-2xl">⏳</div>
-            <p className="text-sm font-semibold text-amber-200">
+          <div className="space-y-2 text-center py-4">
+            <div className="text-3xl">⏳</div>
+            <p className="text-base font-bold text-amber-200">
               Message content is sealed and encrypted
             </p>
             <p className="text-xs text-slate-400">
@@ -172,75 +149,50 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
                 key={i}
                 className="inline-flex items-center gap-1 rounded-xl bg-slate-800/80 border border-white/10 px-2.5 py-1 text-xs text-slate-300"
               >
-                📎 {att.name || `File ${i + 1}`}
+                📎 {att.name || att.fileName || `File ${i + 1}`}
               </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Share and Action Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-white/10">
-        {/* Share Toggle */}
-        <label className="relative inline-flex items-center cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={capsule.shared}
-            onChange={handleShareToggle}
-            disabled={toggling}
-            className="sr-only"
-          />
-          <div
-            className={`w-12 h-6.5 flex items-center rounded-full p-1 transition-colors duration-300 ${
-              capsule.shared ? "bg-emerald-500" : "bg-slate-700"
-            } ${toggling ? "opacity-60 cursor-not-allowed" : ""}`}
-          >
-            <div
-              className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-300 ${
-                capsule.shared ? "translate-x-5.5" : "translate-x-0"
-              }`}
-            />
+      {/* Management and Sharing Area */}
+      <div className="pt-4 border-t border-white/10 space-y-4">
+        {/* Actions row: Edit / Delete on the right, label on the left */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Share with Recipient
           </div>
-          <span className="ml-3 text-xs font-semibold text-slate-300">
-            {toggling
-              ? "Saving..."
-              : capsule.shared
-              ? "Public Link Enabled 🌍"
-              : "Make Public"}
-          </span>
-        </label>
 
-        {/* Edit & Delete Action Buttons */}
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setEditing(true)}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700 hover:border-white/20 transition flex items-center gap-1.5"
-          >
-            <span>✏️</span>
-            <span>Edit</span>
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setEditing(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700 hover:border-white/20 transition flex items-center gap-1.5"
+            >
+              <span>✏️</span>
+              <span>Edit</span>
+            </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleDelete}
-            disabled={deleting}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition disabled:opacity-50 flex items-center gap-1.5"
-          >
-            <span>❌</span>
-            <span>{deleting ? "Deleting..." : "Delete"}</span>
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <span>🗑️</span>
+              <span>{deleting ? "Deleting..." : "Delete"}</span>
+            </motion.button>
+          </div>
         </div>
-      </div>
 
-      {/* Share Options Drawer/Links if shared */}
-      {capsule.shared && (
-        <div className="mt-4 pt-3 border-t border-white/5">
+        {/* Share buttons (WhatsApp, Email, Copy Link, Download) */}
+        <div>
           <ShareOptions shareUrl={shareUrl} capsule={capsule} />
         </div>
-      )}
+      </div>
 
       {/* Edit Modal */}
       <AnimatePresence>
@@ -268,6 +220,20 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
                     value={formData.title}
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">
+                    Recipient Email
+                  </label>
+                  <input
+                    type="email"
+                    className="theme-input text-sm"
+                    value={formData.recipientEmail}
+                    onChange={(e) =>
+                      setFormData({ ...formData, recipientEmail: e.target.value })
                     }
                   />
                 </div>
@@ -314,7 +280,7 @@ export default function CapsuleDetails({ capsule, onDelete, onUpdate }) {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleEditSubmit}
-                  className="theme-button-primary px-5 py-2 text-sm"
+                  className="theme-button-primary px-5 py-2 text-sm font-bold"
                 >
                   Save Changes
                 </motion.button>

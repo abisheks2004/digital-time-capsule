@@ -13,7 +13,6 @@ const isEmail = (e) => /^\S+@\S+\.\S+$/.test(String(e || "").trim());
 // Parse unlockDate consistently
 const parseUnlockDate = (val) => {
   if (!val) return null;
-  // If frontend sends "YYYY-MM-DDTHH:mm"
   const d = new Date(val);
   return Number.isNaN(d.getTime()) ? null : d;
 };
@@ -36,10 +35,10 @@ router.post("/", auth, async (req, res) => {
       user: req.user.id,
       userEmail: req.user.email,
       recipientEmail: recipientEmail?.trim() || "",
-      title: title || "Time Capsule",
+      title: title?.trim() || "Time Capsule",
       message,
       unlockDate: parsedUnlock, // store as UTC
-      shared: !!shared,
+      shared: shared !== undefined ? !!shared : true,
       attachments: attachments || [],
       shareLink: shareToken,
       notified: false,
@@ -49,10 +48,11 @@ router.post("/", auth, async (req, res) => {
 
     const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink}`;
 
-    if (recipientEmail && recipientEmail.trim().toLowerCase() !== req.user.email.toLowerCase()) {
+    // Send confirmation to recipient email whenever provided
+    if (recipientEmail && isEmail(recipientEmail)) {
       sendCapsuleEmail(
         recipientEmail.trim(),
-        title || "Time Capsule",
+        capsule.title,
         parsedUnlock.toISOString(),
         shareUrl,
         Array.isArray(attachments) ? attachments : [],
@@ -62,7 +62,7 @@ router.post("/", auth, async (req, res) => {
 
     res.status(201).json({ success: true, capsule, shareUrl });
   } catch (err) {
-    console.error(err);
+    console.error("Error creating capsule:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -78,11 +78,11 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// GET capsule by shareLink (public access)
+// GET capsule by shareLink (accessible once unlocked via unique link)
 router.get("/share/:link", async (req, res) => {
   try {
-    const capsule = await Capsule.findOne({ shareLink: req.params.link, shared: true });
-    if (!capsule) return res.status(404).json({ error: "Capsule not found or not shared" });
+    const capsule = await Capsule.findOne({ shareLink: req.params.link });
+    if (!capsule) return res.status(404).json({ error: "Capsule not found" });
 
     const isUnlocked = new Date(capsule.unlockDate).getTime() <= Date.now();
     if (!isUnlocked) return res.status(403).json({ error: "Capsule is locked until unlock date" });
@@ -104,7 +104,7 @@ router.put("/:id", auth, async (req, res) => {
     const { message, unlockDate, shared, attachments, recipientEmail, title } = req.body;
 
     if (message) capsule.message = message;
-    if (title) capsule.title = title;
+    if (title) capsule.title = title.trim();
     if (unlockDate) {
       const parsed = parseUnlockDate(unlockDate);
       if (!parsed) return res.status(400).json({ error: "Invalid unlockDate" });

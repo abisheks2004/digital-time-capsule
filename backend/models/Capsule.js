@@ -1,18 +1,21 @@
 import mongoose from "mongoose";
 
 const AttachmentSchema = new mongoose.Schema({
-  fileName: { type: String, required: true },
-  fileUrl: { type: String, required: true },
-  fileType: { type: String, enum: ["image", "video", "audio", "link"], required: true },
-});
+  name: { type: String },
+  fileName: { type: String },
+  fileUrl: { type: String },
+  fileType: { type: String },
+}, { _id: false });
 
 const CapsuleSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId, // 🔑 link to User
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
   userEmail: { type: String, required: true },
+  title: { type: String, default: "Time Capsule" },
+  recipientEmail: { type: String, default: "" },
 
   message: { type: String, required: true },
   attachments: [AttachmentSchema],
@@ -21,7 +24,7 @@ const CapsuleSchema = new mongoose.Schema({
 
   shareLink: { type: String, unique: true, required: true },
 
-  shared: { type: Boolean, default: false }, // 🔑 keep this if you want public capsules
+  shared: { type: Boolean, default: true },
 
   notified: { type: Boolean, default: false },
 
@@ -35,5 +38,5 @@ CapsuleSchema.pre("validate", function (next) {
   next();
 });
 
-// ✅ Export as ESM
+// Export as ESM
 export default mongoose.models.Capsule || mongoose.model("Capsule", CapsuleSchema);
