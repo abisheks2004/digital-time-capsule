@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export default function CapsuleForm({ onSuccess }) {
+export default function CapsuleForm() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [unlockDate, setUnlockDate] = useState("");
@@ -13,6 +14,8 @@ export default function CapsuleForm({ onSuccess }) {
   const [recipientEmail, setRecipientEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
+
+  const navigate = useNavigate();
 
   const handleFiles = (e) => {
     const selected = Array.from(e.target.files || []);
@@ -49,63 +52,64 @@ export default function CapsuleForm({ onSuccess }) {
       };
 
       const token = localStorage.getItem("token");
-      const res = await axios.post(`${API_URL}/api/capsules`, payload, {
+      await axios.post(`${API_URL}/api/capsules`, payload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Reset form
-      setTitle("");
-      setMessage("");
-      setUnlockDate("");
-      setUnlockTime("");
-      setAttachments([]);
-      setRecipientEmail("");
-
       setStatus({
         type: "success",
-        message: "✨ Time Capsule sealed and stored! The recipient will receive an email on the unlock date.",
+        message: "✨ Capsule sealed! Sending to recipient...",
       });
 
-      if (onSuccess) {
-        setTimeout(() => {
-          onSuccess(res.data.capsule);
-        }, 800);
-      }
+      // Seamlessly return to dashboard after short confirmation
+      setTimeout(() => {
+        navigate("/home");
+      }, 700);
     } catch (err) {
       console.error(err);
       setStatus({
         type: "error",
         message: err.response?.data?.error || err.response?.data?.message || err.message || "Error creating capsule",
       });
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -16 }}
-      transition={{ duration: 0.35 }}
-      className="glass-panel w-full rounded-[28px] border border-white/10 p-6 sm:p-8 lg:p-10 shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="glass-panel w-full rounded-[26px] border border-white/10 p-5 sm:p-7 shadow-[0_24px_70px_rgba(0,0,0,0.5)]"
     >
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/10 pb-5">
+      {/* Compact Top Navigation / Header */}
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/10 pb-3.5">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-2xl shadow-lg shadow-amber-500/25">
-            ✨
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="button"
+            onClick={() => navigate("/home")}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800/80 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm"
+            title="Back to Dashboard"
+          >
+            ←
+          </motion.button>
           <div>
-            <h2 className="text-2xl font-black tracking-wide text-gradient">Create New Capsule</h2>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Preserve memories for tomorrow</p>
+            <h2 className="text-xl sm:text-2xl font-black tracking-wide text-gradient leading-tight">
+              Create Time Capsule
+            </h2>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
+              Seal a moment for someone special
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-amber-300/80 bg-amber-400/10 border border-amber-400/20 px-3 py-1.5 rounded-full w-fit">
-          <span>🔒 Fully Encrypted Storage</span>
+        <div className="hidden sm:flex items-center gap-1.5 text-xs text-amber-300 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full">
+          <span>🔒 Encrypted Vault</span>
         </div>
       </div>
 
@@ -115,10 +119,10 @@ export default function CapsuleForm({ onSuccess }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className={`mb-6 overflow-hidden rounded-2xl p-4 text-sm font-medium border ${
+            className={`mb-3.5 overflow-hidden rounded-xl p-3 text-xs font-semibold border ${
               status.type === "success"
-                ? "border-emerald-400/40 bg-emerald-950/60 text-emerald-200"
-                : "border-rose-400/40 bg-rose-950/60 text-rose-200"
+                ? "border-emerald-400/40 bg-emerald-950/70 text-emerald-200"
+                : "border-rose-400/40 bg-rose-950/70 text-rose-200"
             }`}
           >
             {status.message}
@@ -126,12 +130,13 @@ export default function CapsuleForm({ onSuccess }) {
         )}
       </AnimatePresence>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left Column: Metadata */}
-          <div className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Compressed 2-Column Grid (Fits 100% on Laptop Viewport) */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Left Column: Title, Recipient, Unlock Date & Time */}
+          <div className="space-y-3.5">
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
                 Capsule Title
               </label>
               <motion.input
@@ -139,13 +144,13 @@ export default function CapsuleForm({ onSuccess }) {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Letter to Future Me, Birthday 2027"
-                className="theme-input"
+                placeholder="e.g., Birthday Surprise 2027"
+                className="theme-input py-2.5 px-3.5 text-sm rounded-xl"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
                 Recipient Email <span className="text-rose-400">*</span>
               </label>
               <motion.input
@@ -153,100 +158,96 @@ export default function CapsuleForm({ onSuccess }) {
                 type="email"
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="recipient@example.com"
+                placeholder="friend@example.com"
                 required
-                className="theme-input"
+                className="theme-input py-2.5 px-3.5 text-sm rounded-xl"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
                   Unlock Date <span className="text-rose-400">*</span>
                 </label>
                 <input
                   type="date"
                   value={unlockDate}
                   onChange={(e) => setUnlockDate(e.target.value)}
-                  className="theme-input cursor-pointer"
+                  className="theme-input py-2 px-3 text-xs sm:text-sm rounded-xl cursor-pointer"
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
                   Unlock Time
                 </label>
                 <input
                   type="time"
                   value={unlockTime}
                   onChange={(e) => setUnlockTime(e.target.value)}
-                  className="theme-input cursor-pointer"
+                  className="theme-input py-2 px-3 text-xs sm:text-sm rounded-xl cursor-pointer"
                 />
               </div>
             </div>
           </div>
 
-          {/* Right Column: Message & Media */}
-          <div className="space-y-5">
+          {/* Right Column: Message & Attachments */}
+          <div className="space-y-3.5">
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
                 Capsule Message <span className="text-rose-400">*</span>
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="What memories, hopes, or secrets do you want to seal in this capsule?"
-                rows={5}
+                placeholder="Write your personal memories, wishes, or secrets..."
+                rows={4}
                 required
-                className="theme-input min-h-[140px] resize-y"
+                className="theme-input py-2.5 px-3.5 text-sm rounded-xl min-h-[96px] max-h-[140px] resize-y"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
-                Media Attachments (Photos, Videos, Audio)
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
+                Attach Media (Optional)
               </label>
               <div className="relative">
                 <input
                   type="file"
-                  id="capsule-file-upload"
+                  id="capsule-file-input"
                   multiple
                   onChange={handleFiles}
                   accept="image/*,video/*,audio/*"
                   className="hidden"
                 />
                 <label
-                  htmlFor="capsule-file-upload"
-                  className="flex flex-col items-center justify-center p-4 border border-dashed border-white/20 rounded-2xl bg-slate-900/40 hover:bg-slate-900/70 hover:border-amber-400/50 transition-all cursor-pointer group"
+                  htmlFor="capsule-file-input"
+                  className="flex items-center justify-center gap-2 py-2.5 px-3 border border-dashed border-white/20 rounded-xl bg-slate-900/40 hover:bg-slate-900/70 hover:border-amber-400/40 transition-all cursor-pointer group"
                 >
-                  <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">📎</span>
+                  <span className="text-base group-hover:scale-110 transition-transform">📎</span>
                   <span className="text-xs font-semibold text-slate-300 group-hover:text-amber-300">
-                    Click to browse files
+                    Browse photos, audio, or video
                   </span>
-                  <span className="text-[10px] text-slate-500">Supports images, audio, video files</span>
                 </label>
               </div>
 
               {attachments.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-1.5 max-h-16 overflow-y-auto">
                   {attachments.map((file, index) => (
-                    <motion.div
+                    <span
                       key={index}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-200"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[11px] text-amber-200"
                     >
-                      <span className="max-w-[150px] truncate">{file.name}</span>
+                      <span className="max-w-[120px] truncate">{file.name}</span>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
-                        className="text-amber-400 hover:text-rose-400 transition ml-1"
-                        aria-label="Remove attachment"
+                        className="text-amber-400 hover:text-rose-400 ml-0.5"
                       >
                         ✕
                       </button>
-                    </motion.div>
+                    </span>
                   ))}
                 </div>
               )}
@@ -254,14 +255,14 @@ export default function CapsuleForm({ onSuccess }) {
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="pt-3">
+        {/* Submit Action */}
+        <div className="pt-1">
           <motion.button
             type="submit"
             disabled={loading}
-            whileHover={{ scale: 1.015, y: -2 }}
+            whileHover={{ scale: 1.01, y: -1 }}
             whileTap={{ scale: 0.98 }}
-            className="theme-button-primary w-full py-4 text-base font-bold shadow-[0_12px_28px_rgba(251,191,36,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="theme-button-primary w-full py-3 text-sm sm:text-base font-bold shadow-[0_10px_24px_rgba(251,191,36,0.3)] disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

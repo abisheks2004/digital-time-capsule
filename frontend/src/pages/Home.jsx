@@ -263,17 +263,13 @@ export default function Home() {
         </motion.div>
       )}
 
-      {/* Unified Single-Page Actions (Create Capsule, My Capsules, Shared Capsules) */}
+      {/* Action Buttons: Create Capsule (Navigates to /create) & Dashboard Tabs */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <motion.button
           whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveTab("create")}
-          className={`rounded-[22px] border py-4 text-base sm:text-lg font-bold shadow-lg transition flex items-center justify-center gap-2.5 ${
-            activeTab === "create"
-              ? "border-amber-400/50 bg-gradient-to-r from-amber-400 via-yellow-500 to-rose-400 text-slate-950 font-black shadow-[0_12px_30px_rgba(251,191,36,0.35)]"
-              : "border-white/10 bg-slate-900/60 text-slate-100 hover:border-amber-400/40 hover:bg-slate-800/80"
-          }`}
+          onClick={() => navigate("/create")}
+          className="theme-button-primary rounded-[22px] py-4 text-base sm:text-lg font-bold shadow-[0_12px_28px_rgba(251,191,36,0.3)] flex items-center justify-center gap-2.5 text-slate-950 font-black cursor-pointer"
         >
           <span>➕</span>
           <span>Create Capsule</span>
@@ -311,22 +307,9 @@ export default function Home() {
         </motion.button>
       </div>
 
-      {/* Main Single-Page Content Area */}
+      {/* Main Dashboard Content Area */}
       <div className="mt-6">
         <AnimatePresence mode="wait">
-          {/* CREATE TAB: Full form rendered right on this page! */}
-          {activeTab === "create" && (
-            <motion.div
-              key="create-tab"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.25 }}
-            >
-              <CapsuleForm onSuccess={handleCapsuleCreated} />
-            </motion.div>
-          )}
-
           {/* MY CAPSULES TAB */}
           {activeTab === "mine" && (
             <motion.div

@@ -1,6 +1,11 @@
-import { Navigate } from "react-router-dom";
+import CapsuleForm from "../components/CapsuleForm";
 
 export default function CreateCapsule() {
-  // Seamlessly redirect to the unified dashboard with the Create tab active
-  return <Navigate to="/home?tab=create" replace />;
+  return (
+    <div className="flex min-h-[calc(100vh-100px)] items-center justify-center px-4 py-2 sm:py-4">
+      <div className="w-full max-w-4xl">
+        <CapsuleForm />
+      </div>
+    </div>
+  );
 }
