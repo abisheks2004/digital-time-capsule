@@ -32,7 +32,20 @@ export default function CapsuleForm() {
     setLoading(true);
 
     try {
-      const dateTime = unlockTime ? `${unlockDate}T${unlockTime}` : unlockDate;
+      // Convert local date and time to proper ISO UTC timestamp preserving user's chosen local time
+      let isoDateTime = unlockDate;
+      if (unlockDate) {
+        const [y, m, d] = unlockDate.split("-").map(Number);
+        let h = 0;
+        let min = 0;
+        if (unlockTime) {
+          const [th, tm] = unlockTime.split(":").map(Number);
+          h = th;
+          min = tm;
+        }
+        const localDate = new Date(y, m - 1, d, h, min, 0, 0);
+        isoDateTime = localDate.toISOString();
+      }
 
       if (!/^\S+@\S+\.\S+$/.test(recipientEmail.trim())) {
         setStatus({
@@ -46,7 +59,7 @@ export default function CapsuleForm() {
       const payload = {
         title: title.trim() || "Time Capsule",
         message,
-        unlockDate: dateTime,
+        unlockDate: isoDateTime,
         recipientEmail: recipientEmail.trim(),
         attachments: attachments.map((f) => ({ name: f.name })),
       };

@@ -113,10 +113,14 @@ export default function ShareOptions({ shareUrl, capsule }) {
       <AnimatePresence>
         {sendMsg && (
           <motion.div
-            initial={{ opacity: 0, y: 5 }}
+            initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="text-xs font-semibold text-amber-300 mt-1"
+            className={`text-xs font-semibold px-3 py-2 rounded-xl border mt-2 leading-relaxed ${
+              sendMsg.startsWith("❌")
+                ? "text-rose-300 bg-rose-950/40 border-rose-500/30"
+                : "text-emerald-300 bg-emerald-950/40 border-emerald-500/30"
+            }`}
           >
             {sendMsg}
           </motion.div>

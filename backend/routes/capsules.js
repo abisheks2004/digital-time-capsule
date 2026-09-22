@@ -136,6 +136,14 @@ router.delete("/:id", auth, async (req, res) => {
     if (!capsule) return res.status(404).json({ error: "Capsule not found" });
     if (capsule.user.toString() !== req.user.id) return res.status(403).json({ error: "Not authorized" });
 
+    await capsule.deleteOne();
+    res.json({ success: true, message: "Capsule deleted" });
+  } catch (err) {
+    console.error("Delete capsule error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // SEND / RESEND to recipient
 router.post("/:id/send", auth, async (req, res) => {
   try {
@@ -153,7 +161,7 @@ router.post("/:id/send", auth, async (req, res) => {
     await sendCapsuleEmail(
       recipient,
       capsule.title || "Time Capsule",
-      capsule.unlockDate.toISOString(),
+      capsule.unlockDate ? capsule.unlockDate.toISOString() : new Date().toISOString(),
       shareUrl,
       capsule.attachments || [],
       req.user.name || req.user.email

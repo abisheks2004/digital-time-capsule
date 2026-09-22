@@ -38,10 +38,12 @@ export default function EditCapsule() {
 
         if (found.unlockDate) {
           const d = new Date(found.unlockDate);
-          const dateStr = d.toISOString().split("T")[0];
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const dd = String(d.getDate()).padStart(2, "0");
           const hours = String(d.getHours()).padStart(2, "0");
           const minutes = String(d.getMinutes()).padStart(2, "0");
-          setUnlockDate(dateStr);
+          setUnlockDate(`${yyyy}-${mm}-${dd}`);
           setUnlockTime(`${hours}:${minutes}`);
         }
       } catch (err) {
@@ -61,13 +63,26 @@ export default function EditCapsule() {
     setSaving(true);
 
     try {
-      const dateTime = unlockTime ? `${unlockDate}T${unlockTime}` : unlockDate;
+      // Convert local date and time to proper ISO UTC timestamp preserving user's chosen local time
+      let isoDateTime = unlockDate;
+      if (unlockDate) {
+        const [y, m, d] = unlockDate.split("-").map(Number);
+        let h = 0;
+        let min = 0;
+        if (unlockTime) {
+          const [th, tm] = unlockTime.split(":").map(Number);
+          h = th;
+          min = tm;
+        }
+        const localDate = new Date(y, m - 1, d, h, min, 0, 0);
+        isoDateTime = localDate.toISOString();
+      }
 
       const payload = {
         title: title.trim() || "Time Capsule",
         recipientEmail: recipientEmail.trim(),
         message,
-        unlockDate: dateTime,
+        unlockDate: isoDateTime,
       };
 
       await axios.put(`${API_URL}/api/capsules/${id}`, payload, {
