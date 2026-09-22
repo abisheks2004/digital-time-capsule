@@ -99,14 +99,40 @@ export default function ProfilePage() {
         transition={{ duration: 0.3 }}
         className="glass-panel w-full max-w-2xl rounded-[30px] p-7 sm:p-9 shadow-2xl border border-white/10"
       >
-        <div className="mb-6 flex items-center justify-center gap-3">
-          <motion.div
-            whileHover={{ rotate: 10, scale: 1.05 }}
-            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-2xl shadow-lg shadow-amber-600/25 cursor-pointer"
-          >
-            👤
-          </motion.div>
-          <h1 className="text-3xl font-black text-gradient">Profile & Vault</h1>
+        {/* Header with Back Button */}
+        <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={() => navigate("/home")}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800/80 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm"
+              title="Back to Dashboard"
+            >
+              ←
+            </motion.button>
+            <div className="flex items-center gap-3">
+              <motion.div
+                whileHover={{ rotate: 10, scale: 1.05 }}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-xl shadow-md shadow-amber-600/25 cursor-pointer"
+              >
+                👤
+              </motion.div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-gradient leading-tight">
+                  Profile & Vault
+                </h1>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                  Account settings
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-amber-300 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full">
+            <span>👤 User Profile</span>
+          </div>
         </div>
 
         {editMode ? (

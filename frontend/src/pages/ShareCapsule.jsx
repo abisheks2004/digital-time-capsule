@@ -52,13 +52,23 @@ export default function ShareCapsule() {
     <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-2xl items-center justify-center px-4 py-8">
       <div className="glass-panel w-full rounded-[30px] p-6 sm:p-8">
         <div className="mb-6 flex items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div>
-            <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${isUnlocked ? "text-amber-300" : "text-rose-300"}`}>
-              {isUnlocked ? "Unlocked" : "Locked"}
-            </p>
-            <h1 className="mt-2 text-3xl font-black text-gradient">
-              {isUnlocked ? "Time Capsule 🔓" : "Time Capsule 🔒"}
-            </h1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => (window.history.length > 1 ? window.history.back() : (window.location.href = "/"))}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800/80 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm"
+              title="Back"
+            >
+              ←
+            </button>
+            <div>
+              <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${isUnlocked ? "text-amber-300" : "text-rose-300"}`}>
+                {isUnlocked ? "Unlocked" : "Locked"}
+              </p>
+              <h1 className="mt-1 text-2xl sm:text-3xl font-black text-gradient">
+                {isUnlocked ? "Time Capsule 🔓" : "Time Capsule 🔒"}
+              </h1>
+            </div>
           </div>
           <div className="rounded-full border border-white/10 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300">
             {unlockDateLocal}
