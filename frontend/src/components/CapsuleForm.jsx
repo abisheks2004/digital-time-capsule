@@ -66,14 +66,13 @@ export default function CapsuleForm() {
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="space-y-6 bg-zinc-600 dark:bg-white p-6 rounded-xl shadow-xl max-w-3xl mx-auto"
+      className="mx-auto max-w-3xl space-y-6 rounded-[26px] border border-white/10 bg-slate-900/60 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.4)] sm:p-6 lg:p-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Title */}
       <div>
-        <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
+        <label className="mb-2 block text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
           Title
         </label>
         <input
@@ -81,55 +80,52 @@ export default function CapsuleForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g., Birthday Surprise"
-          className="w-full p-2 rounded-lg border border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+          className="theme-input"
         />
       </div>
 
-      {/* Message */}
       <div>
-        <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
+        <label className="mb-2 block text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
           Capsule Message
         </label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Write your capsule message..."
-          className="w-full p-4 rounded-lg border border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+          className="theme-input min-h-[140px] resize-y"
           rows={5}
           required
         />
       </div>
 
-      {/* Date & Time */}
-      <div className="flex gap-4 flex-wrap">
-        <div className="flex-1">
-          <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
+      <div className="flex flex-wrap gap-4">
+        <div className="min-w-[180px] flex-1">
+          <label className="mb-2 block text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
             Unlock Date
           </label>
           <input
             type="date"
             value={unlockDate}
             onChange={(e) => setUnlockDate(e.target.value)}
-            className="w-full p-2 rounded-lg border border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+            className="theme-input"
             required
           />
         </div>
-        <div className="flex-1">
-          <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
+        <div className="min-w-[180px] flex-1">
+          <label className="mb-2 block text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
             Unlock Time
           </label>
           <input
             type="time"
             value={unlockTime}
             onChange={(e) => setUnlockTime(e.target.value)}
-            className="w-full p-2 rounded-lg border border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+            className="theme-input"
           />
         </div>
       </div>
 
-      {/* Recipient Email */}
       <div>
-        <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
+        <label className="mb-2 block text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
           Recipient Email
         </label>
         <input
@@ -138,24 +134,23 @@ export default function CapsuleForm() {
           onChange={(e) => setRecipientEmail(e.target.value)}
           placeholder="Enter recipient email..."
           required
-          className="w-full p-2 border rounded-lg border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+          className="theme-input"
         />
       </div>
 
-      {/* Attachments */}
       <div>
-        <label className="block font-semibold mb-2 text-[#f59e0b] dark:text-black">
-          Attach Media (Image, Audio, Video)
+        <label className="mb-2 block text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
+          Attach Media
         </label>
         <input
           type="file"
           multiple
           onChange={handleFiles}
           accept="image/*,video/*,audio/*"
-          className="w-full p-2 rounded-lg border border-zinc-400 focus:border-[#f59e0b] focus:ring-2 focus:ring-[#f59e0b] bg-zinc-100 dark:bg-zinc-700 text-black dark:text-white transition-colors"
+          className="theme-input cursor-pointer file:mr-4 file:rounded-full file:border-0 file:bg-amber-400 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-slate-900"
         />
         {attachments.length > 0 && (
-          <ul className="mt-2 list-disc list-inside text-sm text-[#f59e0b] dark:text-black">
+          <ul className="mt-3 list-disc list-inside text-sm text-slate-300">
             {attachments.map((file, index) => (
               <li key={index}>{file.name}</li>
             ))}
@@ -163,13 +158,12 @@ export default function CapsuleForm() {
         )}
       </div>
 
-      {/* Submit */}
       <motion.button
         type="submit"
         disabled={loading}
-        whileHover={{ scale: 1.05, boxShadow: "0px 0px 15px rgba(245,158,11,0.5)" }}
-        whileTap={{ scale: 0.95 }}
-        className="w-full px-6 py-3 bg-[#f59e0b] dark:bg-black text-black dark:text-[#f59e0b] font-semibold rounded-xl shadow-lg transition-all duration-300 hover:bg-[#facc15] dark:hover:bg-zinc-700"
+        whileHover={{ scale: 1.01, boxShadow: "0px 0px 18px rgba(251,191,36,0.35)" }}
+        whileTap={{ scale: 0.98 }}
+        className="theme-button-primary w-full py-3.5 text-base"
       >
         {loading ? "Creating..." : "Create Capsule"}
       </motion.button>

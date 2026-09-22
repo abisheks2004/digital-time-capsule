@@ -49,40 +49,52 @@ export default function ShareCapsule() {
   const isUnlocked = new Date(capsule.unlockDate) <= new Date();
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl">
-      <h1 className={`text-2xl font-bold mb-4 ${isUnlocked ? "text-yellow-600" : "text-red-500"}`}>
-        {isUnlocked ? "Unlocked Time Capsule 🔓" : "Locked Time Capsule 🔒"}
-      </h1>
-
-      <h2 className="text-xl font-semibold mb-2">{capsule.title || "Time Capsule"}</h2>
-
-      <p className="mb-4 break-words text-lg">
-        {isUnlocked
-          ? capsule.message
-          : `This capsule is locked until ${unlockDateLocal}`}
-      </p>
-
-      {isUnlocked && capsule.attachments?.length > 0 && (
-        <div className="mb-4">
-          <h3 className="font-semibold mb-2">Attachments:</h3>
-          <ul className="list-disc list-inside">
-            {capsule.attachments.map((file, idx) => (
-              <li key={idx}>
-                <a href={file} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                  {file.split("/").pop()}
-                </a>
-              </li>
-            ))}
-          </ul>
+    <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-2xl items-center justify-center px-4 py-8">
+      <div className="glass-panel w-full rounded-[30px] p-6 sm:p-8">
+        <div className="mb-6 flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${isUnlocked ? "text-amber-300" : "text-rose-300"}`}>
+              {isUnlocked ? "Unlocked" : "Locked"}
+            </p>
+            <h1 className="mt-2 text-3xl font-black text-gradient">
+              {isUnlocked ? "Time Capsule 🔓" : "Time Capsule 🔒"}
+            </h1>
+          </div>
+          <div className="rounded-full border border-white/10 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300">
+            {unlockDateLocal}
+          </div>
         </div>
-      )}
 
-      {isUnlocked && (
-        <ShareOptions
-          shareUrl={`${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`}
-          capsule={capsule}
-        />
-      )}
+        <h2 className="mb-4 text-2xl font-bold text-slate-100">{capsule.title || "Time Capsule"}</h2>
+
+        <p className="mb-5 break-words text-lg leading-8 text-slate-200">
+          {isUnlocked
+            ? capsule.message
+            : `This capsule is locked until ${unlockDateLocal}`}
+        </p>
+
+        {isUnlocked && capsule.attachments?.length > 0 && (
+          <div className="mb-5">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">Attachments</h3>
+            <ul className="space-y-2 text-slate-200">
+              {capsule.attachments.map((file, idx) => (
+                <li key={idx}>
+                  <a href={file} target="_blank" rel="noopener noreferrer" className="text-amber-300 underline-offset-4 hover:underline">
+                    {file.split("/").pop()}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {isUnlocked && (
+          <ShareOptions
+            shareUrl={`${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`}
+            capsule={capsule}
+          />
+        )}
+      </div>
     </div>
   );
 }

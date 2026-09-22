@@ -2,14 +2,19 @@ import CapsuleForm from "../components/CapsuleForm";
 
 export default function CreateCapsule() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 px-4 py-10">
-      <div className="w-full max-w-3xl bg-zinc-700 dark:bg-zinc-100 rounded-2xl shadow-2xl p-8">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">
-           Digital Time Capsule
-        </h1>
-        <p className="text-center text-zinc-200 dark:text-zinc-800 mb-8">
-          Write a message, attach media, set unlock date and time, and share your capsule with friends!
-        </p>
+    <div className="flex min-h-[calc(100vh-120px)] items-center justify-center px-4 py-8">
+      <div className="glass-panel w-full max-w-4xl rounded-[30px] p-6 sm:p-8 lg:p-10">
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-3xl shadow-lg shadow-amber-500/20">
+            ✨
+          </div>
+          <h1 className="text-3xl font-black text-gradient sm:text-4xl lg:text-5xl">
+            Digital Time Capsule
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-300 sm:text-base">
+            Write a message, attach media, set an unlock date, and share a future moment with the people who matter most.
+          </p>
+        </div>
         <CapsuleForm />
       </div>
     </div>

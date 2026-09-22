@@ -184,26 +184,31 @@ export default function Home() {
     d ? new Date(d).toLocaleDateString() : "";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 p-6 space-y-8 relative">
+    <div className="relative min-h-[calc(100vh-120px)] space-y-8 py-2">
       {user && (
-        <div className="bg-zinc-800 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-6">
-          <div>
-            <h2 className="text-2xl font-bold text-yellow-400">{user.name}</h2>
-            <p className="text-zinc-400">{user.email}</p>
+        <div className="glass-panel flex flex-col items-center justify-between gap-4 rounded-[28px] p-5 md:flex-row md:p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-2xl shadow-lg shadow-amber-500/20">
+              👋
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-gradient">{user.name}</h2>
+              <p className="text-sm text-slate-300">{user.email}</p>
+            </div>
           </div>
-          <p className="text-zinc-300 text-sm">
-            Total Capsules: <span className="font-semibold">{capsules.length}</span>
-          </p>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-sm text-amber-200">
+              Total Capsules: <span className="font-bold text-white">{capsules.length}</span>
+            </div>
             <button
               onClick={() => navigate("/profile")}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-400 transition"
+              className="theme-button-secondary px-4 py-2.5"
             >
               👤 Profile
             </button>
             <button
               onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-400 transition"
+              className="rounded-2xl bg-rose-500 px-4 py-2.5 font-semibold text-white transition hover:bg-rose-400"
             >
               🚪 Logout
             </button>
@@ -211,21 +216,20 @@ export default function Home() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         <button
           onClick={() => navigate("/create")}
-          className="bg-yellow-500 text-black py-6 rounded-xl font-bold text-lg shadow-md hover:bg-yellow-400 transition transform hover:scale-105"
+          className="theme-button-primary py-5 text-lg shadow-[0_18px_30px_rgba(251,191,36,0.22)]"
         >
           ➕ Create Capsule
         </button>
 
         <button
           onClick={() => setActiveTab("mine")}
-          className={`py-6 rounded-xl font-bold text-lg shadow-md transition transform hover:scale-105 w-full ${
+          className={`rounded-[22px] border py-5 text-lg font-bold shadow-lg transition ${
             activeTab === "mine"
-              ? "bg-red-600 text-white"
-              : "bg-red-500 text-white hover:bg-red-400"
+              ? "border-rose-400/40 bg-rose-500 text-white shadow-rose-500/20"
+              : "border-white/10 bg-slate-900/60 text-slate-100 hover:border-rose-400/30 hover:bg-slate-800"
           }`}
         >
           📦 My Capsules
@@ -233,10 +237,10 @@ export default function Home() {
 
         <button
           onClick={() => setActiveTab("shared")}
-          className={`py-6 rounded-xl font-bold text-lg shadow-md transition transform hover:scale-105 w-full ${
+          className={`rounded-[22px] border py-5 text-lg font-bold shadow-lg transition ${
             activeTab === "shared"
-              ? "bg-green-600 text-white"
-              : "bg-green-500 text-white hover:bg-green-400"
+              ? "border-emerald-400/40 bg-emerald-500 text-white shadow-emerald-500/20"
+              : "border-white/10 bg-slate-900/60 text-slate-100 hover:border-emerald-400/30 hover:bg-slate-800"
           }`}
         >
           🌍 Shared Capsules

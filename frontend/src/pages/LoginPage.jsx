@@ -35,76 +35,89 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-800 p-4">
+    <div className="flex min-h-[calc(100vh-90px)] items-center justify-center px-4 py-8">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/4 top-16 h-72 w-72 rounded-full bg-amber-400/10 blur-3xl" />
+        <div className="absolute bottom-10 right-10 h-80 w-80 rounded-full bg-rose-400/10 blur-3xl" />
+      </div>
+
       <motion.form
-        initial={{ opacity: 0, y: -50 }}
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         onSubmit={handleSubmit}
-        className="bg-zinc-800 p-10 rounded-2xl shadow-2xl w-full max-w-md space-y-6 relative overflow-hidden"
+        className="glass-panel halo-ring w-full max-w-md space-y-6 rounded-[28px] p-7 sm:p-8"
       >
-        <motion.h2
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 120 }}
-          className="text-3xl font-extrabold text-center text-yellow-400"
-        >
-          {isLogin ? "Login" : "Sign Up"}
-        </motion.h2>
+        <div className="space-y-2 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-2xl shadow-lg shadow-amber-500/20">
+            ⏳
+          </div>
+          <motion.h2
+            initial={{ x: -30, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.15, type: "spring", stiffness: 120 }}
+            className="text-3xl font-black text-gradient"
+          >
+            {isLogin ? "Welcome back" : "Create account"}
+          </motion.h2>
+          <p className="text-sm text-slate-300">
+            {isLogin ? "Unlock the moments you want to revisit." : "Start saving your future memories."}
+          </p>
+        </div>
 
         {!isLogin && (
           <motion.input
             type="text"
             placeholder="Full Name"
-            className="w-full p-3 rounded-xl bg-zinc-700 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="theme-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            initial={{ x: -50, opacity: 0 }}
+            initial={{ x: -30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
           />
         )}
 
         <motion.input
           type="email"
           placeholder="Email"
-          className="w-full p-3 rounded-xl bg-zinc-700 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="theme-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          initial={{ x: -50, opacity: 0 }}
+          initial={{ x: -30, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.28 }}
         />
         <motion.input
           type="password"
           placeholder="Password"
-          className="w-full p-3 rounded-xl bg-zinc-700 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="theme-input"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          initial={{ x: -50, opacity: 0 }}
+          initial={{ x: -30, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.36 }}
         />
 
         <motion.button
           type="submit"
           disabled={loading}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-500 text-black font-bold shadow-lg hover:from-yellow-300 hover:to-red-400 transition-all duration-300"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="theme-button-primary w-full py-3.5 text-base"
         >
           {loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
         </motion.button>
 
         <motion.p
-          className="text-center text-sm text-zinc-400"
+          className="text-center text-sm text-slate-300"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.45 }}
         >
           {isLogin ? "Don’t have an account? " : "Already have an account? "}
           <span
-            className="text-yellow-400 cursor-pointer underline"
+            className="cursor-pointer font-semibold text-amber-300 underline-offset-4 hover:underline"
             onClick={() => setIsLogin(!isLogin)}
           >
             {isLogin ? "Sign Up" : "Login"}

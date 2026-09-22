@@ -81,48 +81,53 @@ export default function ProfilePage() {
   if (!user) return <p className="text-center text-gray-400 mt-10">Loading profile...</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 p-6">
-      <div className="max-w-2xl mx-auto bg-zinc-800 rounded-2xl shadow-xl p-8 text-center space-y-4">
-        <h1 className="text-3xl font-bold text-yellow-400 mb-4">👤 Profile</h1>
+    <div className="flex min-h-[calc(100vh-120px)] items-center justify-center px-4 py-8">
+      <div className="glass-panel w-full max-w-2xl rounded-[30px] p-7 sm:p-8">
+        <div className="mb-6 flex items-center justify-center gap-3">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-yellow-500 to-rose-400 text-2xl shadow-lg shadow-amber-600/20">
+            👤
+          </div>
+          <h1 className="text-3xl font-black text-gradient">Profile</h1>
+        </div>
 
         {editMode ? (
           <div className="space-y-3">
             <input
-              className="w-full p-2 rounded bg-zinc-700 text-white focus:outline-none"
+              className="theme-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
             />
             <input
-              className="w-full p-2 rounded bg-zinc-700 text-white focus:outline-none"
+              className="theme-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
             />
           </div>
         ) : (
-          <div className="space-y-1">
-            <p className="text-lg text-white">Name: {user.name}</p>
-            <p className="text-lg text-white">Email: {user.email}</p>
+          <div className="space-y-3 text-center">
+            <p className="text-xl font-semibold text-slate-100">{user.name}</p>
+            <p className="text-slate-300">{user.email}</p>
           </div>
         )}
 
-        <p className="text-lg text-white mt-2">
-          Total Capsules: <span className="font-semibold">{capsules.length}</span>
+        <p className="mt-6 text-center text-lg text-slate-200">
+          Total Capsules: <span className="font-bold text-amber-300">{capsules.length}</span>
         </p>
 
-        <div className="flex flex-col md:flex-row justify-center gap-4 mt-4">
+        <div className="mt-7 flex flex-col justify-center gap-4 md:flex-row">
           {editMode ? (
             <button
               onClick={handleUpdate}
-              className="bg-green-500 text-white px-6 py-2 rounded-lg shadow hover:bg-green-400 transition"
+              className="theme-button-primary flex-1 px-6 py-3"
             >
               💾 Update
             </button>
           ) : (
             <button
               onClick={() => setEditMode(true)}
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-400 transition"
+              className="theme-button-secondary flex-1 px-6 py-3"
             >
               ✏️ Edit
             </button>
@@ -130,7 +135,7 @@ export default function ProfilePage() {
 
           <button
             onClick={handleDelete}
-            className="bg-red-500 text-white px-6 py-2 rounded-lg shadow hover:bg-red-400 transition"
+            className="flex-1 rounded-2xl bg-rose-500 px-6 py-3 font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-400"
           >
             🗑️ Delete Account
           </button>
