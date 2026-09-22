@@ -36,7 +36,7 @@ export default function Home() {
 
   // Redirect to login if no token
   useEffect(() => {
-    if (!token) navigate("/login", { replace: true });
+    if (!token) navigate("/", { replace: true });
   }, [token, navigate]);
 
   const parseUser = (data) => data?.user ?? data ?? null;
@@ -73,7 +73,7 @@ export default function Home() {
       console.error("Error loading user/capsules:", err);
       setErrorMsg("Unable to load your data. Please log in again.");
       localStorage.removeItem("token");
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } finally {
       setLoadingMy(false);
     }
@@ -155,7 +155,7 @@ export default function Home() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   const labelFor = (c) =>

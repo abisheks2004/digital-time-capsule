@@ -61,16 +61,17 @@ export default function App() {
       {/* Main Content */}
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <Routes location={location} key={location.pathname}>
-          {/* Public Route */}
-          <Route path="/" element={!token ? <LoginPage /> : <Navigate to="/home" />} />
+          {/* Public Routes */}
+          <Route path="/" element={!token ? <LoginPage /> : <Navigate to="/home" replace />} />
+          <Route path="/login" element={!token ? <LoginPage /> : <Navigate to="/home" replace />} />
 
           {/* Protected Routes */}
-          <Route path="/home" element={token ? <Home /> : <Navigate to="/" />} />
-          <Route path="/profile" element={token ? <ProfilePage /> : <Navigate to="/" />} />
-          <Route path="/create" element={token ? <CreateCapsule /> : <Navigate to="/" />} />
-      
-      {/* Public Share Route */}
-  <Route path="/capsule/share/:shareLink" element={<ShareCapsule />} />
+          <Route path="/home" element={token ? <Home /> : <Navigate to="/" replace />} />
+          <Route path="/profile" element={token ? <ProfilePage /> : <Navigate to="/" replace />} />
+          <Route path="/create" element={token ? <CreateCapsule /> : <Navigate to="/" replace />} />
+
+          {/* Public Share Route */}
+          <Route path="/capsule/share/:shareLink" element={<ShareCapsule />} />
 
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" />} />
