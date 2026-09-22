@@ -54,16 +54,6 @@ global.__CRONS_STARTED = global.__CRONS_STARTED || false;
     }
   }
 
-  app.use(
-    cors({
-      origin: [
-        "http://localhost:5173",
-        "https://digital-time-capsule-five.vercel.app/" // <-- replace with your real frontend URL
-      ],
-      credentials: true,
-    })
-  );
-
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
   });

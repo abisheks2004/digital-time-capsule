@@ -14,9 +14,25 @@ import userRoutes from "./routes/users.js";
 
 const app = express();
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+  "https://digital-time-capsule-five.vercel.app",
+].filter(Boolean);
+
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:5173", "https://digital-time-capsule-five.vercel.app"],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
   credentials: true,
 }));
 app.use(express.json());
