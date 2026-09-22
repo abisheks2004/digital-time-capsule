@@ -51,13 +51,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-140px)] flex flex-col justify-center space-y-6 py-4">
+    <div className="relative min-h-[calc(100vh-140px)] flex flex-col justify-center space-y-8 sm:space-y-10 py-6">
       {/* Compact User Header Profile Panel */}
       {user && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel flex flex-col items-center justify-between gap-3 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 md:flex-row shadow-lg max-w-4xl mx-auto w-full border border-white/10"
+          className="glass-panel flex flex-col items-center justify-between gap-3 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 md:flex-row shadow-lg max-w-4xl mx-auto w-full border border-white/10 mb-2 sm:mb-3"
         >
           <div className="flex items-center gap-3">
             <motion.div
