@@ -7,7 +7,8 @@ export default async function sendCapsuleEmail(
   unlockDate,  // Date or string
   shareLink,
   attachments = [],
-  fromName = "Someone"
+  fromName = "Someone",
+  replyTo = null
 ) {
   const unlockIn = unlockDate ? relativeFromNow(unlockDate) : null;
   const unlockLocal = unlockDate ? formatLocal(unlockDate) : null;
@@ -45,6 +46,7 @@ export default async function sendCapsuleEmail(
     text,
     html,
     attachments,
+    replyTo,
   });
 }
 

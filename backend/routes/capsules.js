@@ -57,7 +57,8 @@ router.post("/", auth, async (req, res) => {
         parsedUnlock.toISOString(),
         shareUrl,
         Array.isArray(attachments) ? attachments : [],
-        req.user.name || req.user.email
+        req.user.name ? `${req.user.name} (${req.user.email})` : req.user.email,
+        req.user.email
       ).catch((e) => console.error("Recipient email failed:", e.message));
     }
 
@@ -171,7 +172,8 @@ router.post("/:id/send", auth, async (req, res) => {
       capsule.unlockDate ? capsule.unlockDate.toISOString() : new Date().toISOString(),
       shareUrl,
       capsule.attachments || [],
-      req.user.name || req.user.email
+      req.user.name ? `${req.user.name} (${req.user.email})` : req.user.email,
+      req.user.email
     );
 
     res.json({ success: true, message: `Capsule link successfully sent to ${recipient}!` });

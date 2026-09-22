@@ -19,13 +19,14 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-export default async function sendEmail({ to, subject, text, html, attachments = [] }) {
+export default async function sendEmail({ to, subject, text, html, attachments = [], replyTo }) {
   // 1. If SMTP is configured, prefer SMTP (it sends to any recipient domain without restrictions)
   if (smtpTransporter) {
     try {
       const info = await smtpTransporter.sendMail({
         from: process.env.MAIL_FROM || `"Digital Time Capsule" <${process.env.EMAIL_USER}>`,
         to,
+        replyTo: replyTo || undefined,
         subject,
         text,
         html: html || `<p>${text}</p>`,
@@ -49,6 +50,7 @@ export default async function sendEmail({ to, subject, text, html, attachments =
       subject,
       html: html || `<p>${text}</p>`,
       text,
+      reply_to: replyTo || undefined,
     });
 
     // If unverified domain error and MAIL_FROM wasn't onboarding@resend.dev, retry with onboarding@resend.dev
@@ -60,6 +62,7 @@ export default async function sendEmail({ to, subject, text, html, attachments =
         subject,
         html: html || `<p>${text}</p>`,
         text,
+        reply_to: replyTo || undefined,
       });
     }
 
