@@ -93,9 +93,18 @@ router.get("/share/:link", async (req, res) => {
     if (!capsule) return res.status(404).json({ error: "Capsule not found" });
 
     const isUnlocked = new Date(capsule.unlockDate).getTime() <= Date.now();
-    if (!isUnlocked) return res.status(403).json({ error: "Capsule is locked until unlock date" });
+    
+    // If still locked, return capsule metadata (title, unlockDate) but keep secret message & attachments sealed
+    const safeCapsule = capsule.toObject ? capsule.toObject() : { ...capsule._doc };
+    if (!isUnlocked) {
+      safeCapsule.message = "";
+      safeCapsule.attachments = [];
+      safeCapsule.isLocked = true;
+    } else {
+      safeCapsule.isLocked = false;
+    }
 
-    res.json({ success: true, capsule });
+    res.json({ success: true, capsule: safeCapsule, isUnlocked });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
