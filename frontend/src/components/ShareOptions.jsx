@@ -45,16 +45,23 @@ export default function ShareOptions({ shareUrl, capsule }) {
       const res = await axios.post(
         `${API_URL}/api/capsules/${capsule._id}/send`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 25000,
+        }
       );
       setSendMsg(`✅ ${res.data.message || `Sent to ${capsule.recipientEmail}!`}`);
       setTimeout(() => setSendMsg(""), 4000);
     } catch (err) {
-      console.error(err);
-      setSendMsg(
-        `❌ ${err.response?.data?.error || err.message || "Failed to send email"}`
-      );
-      setTimeout(() => setSendMsg(""), 4000);
+      console.error("Send error:", err);
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        setSendMsg("⚠️ Server took too long to respond. It may be waking up, please try once more!");
+      } else {
+        setSendMsg(
+          `❌ ${err.response?.data?.error || err.message || "Failed to send email"}`
+        );
+      }
+      setTimeout(() => setSendMsg(""), 5000);
     } finally {
       setSending(false);
     }

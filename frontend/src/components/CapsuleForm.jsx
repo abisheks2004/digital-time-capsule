@@ -6,10 +6,22 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function CapsuleForm() {
+  // Default to 1 hour in the future so time is never left blank or set to 12:00 am midnight
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [unlockDate, setUnlockDate] = useState("");
-  const [unlockTime, setUnlockTime] = useState("");
+  const [unlockDate, setUnlockDate] = useState(() => {
+    const future = new Date(Date.now() + 60 * 60 * 1000);
+    const yyyy = future.getFullYear();
+    const mm = String(future.getMonth() + 1).padStart(2, "0");
+    const dd = String(future.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  });
+  const [unlockTime, setUnlockTime] = useState(() => {
+    const future = new Date(Date.now() + 60 * 60 * 1000);
+    const hh = String(future.getHours()).padStart(2, "0");
+    const min = String(future.getMinutes()).padStart(2, "0");
+    return `${hh}:${min}`;
+  });
   const [attachments, setAttachments] = useState([]);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,20 +44,30 @@ export default function CapsuleForm() {
     setLoading(true);
 
     try {
-      // Convert local date and time to proper ISO UTC timestamp preserving user's chosen local time
-      let isoDateTime = unlockDate;
-      if (unlockDate) {
-        const [y, m, d] = unlockDate.split("-").map(Number);
-        let h = 0;
-        let min = 0;
-        if (unlockTime) {
-          const [th, tm] = unlockTime.split(":").map(Number);
-          h = th;
-          min = tm;
-        }
-        const localDate = new Date(y, m - 1, d, h, min, 0, 0);
-        isoDateTime = localDate.toISOString();
+      if (!unlockDate || !unlockTime) {
+        setStatus({
+          type: "error",
+          message: "Please provide both unlock date and unlock time.",
+        });
+        setLoading(false);
+        return;
       }
+
+      const [y, m, d] = unlockDate.split("-").map(Number);
+      const [th, tm] = unlockTime.split(":").map(Number);
+      const localDate = new Date(y, m - 1, d, th, tm, 0, 0);
+
+      // Validate that the chosen time is strictly in the future
+      if (localDate.getTime() <= Date.now()) {
+        setStatus({
+          type: "error",
+          message: "⚠️ Unlock date and time must be in the future! Please select a future time.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const isoDateTime = localDate.toISOString();
 
       if (!/^\S+@\S+\.\S+$/.test(recipientEmail.trim())) {
         setStatus({
@@ -185,6 +207,7 @@ export default function CapsuleForm() {
                 <input
                   type="date"
                   value={unlockDate}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setUnlockDate(e.target.value)}
                   className="theme-input py-2 px-3 text-xs sm:text-sm rounded-xl cursor-pointer"
                   required
@@ -193,13 +216,14 @@ export default function CapsuleForm() {
 
               <div>
                 <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
-                  Unlock Time
+                  Unlock Time <span className="text-rose-400">*</span>
                 </label>
                 <input
                   type="time"
                   value={unlockTime}
                   onChange={(e) => setUnlockTime(e.target.value)}
                   className="theme-input py-2 px-3 text-xs sm:text-sm rounded-xl cursor-pointer"
+                  required
                 />
               </div>
             </div>

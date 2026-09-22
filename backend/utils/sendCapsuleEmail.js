@@ -40,12 +40,17 @@ export default async function sendCapsuleEmail(
     `Unlocks: ${unlockIn ? `${unlockIn} (${unlockLocal})` : "—"}\n` +
     `Link: ${shareLink}`;
 
+  // Only forward attachments that have actual file data/paths, not plain metadata objects
+  const validAttachments = Array.isArray(attachments)
+    ? attachments.filter((a) => a && (a.content || a.path || a.href))
+    : [];
+
   return sendEmail({
     to: recipientEmail,
     subject,
     text,
     html,
-    attachments,
+    attachments: validAttachments,
     replyTo,
   });
 }

@@ -21,6 +21,9 @@ function getSmtpTransporter() {
     transporter: nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
       auth: { user, pass },
+      connectionTimeout: 10000, // 10s timeout to connect
+      greetingTimeout: 10000,
+      socketTimeout: 15000, // 15s socket timeout
     }),
     user,
   };

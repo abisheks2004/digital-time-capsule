@@ -28,6 +28,11 @@ router.post("/", auth, async (req, res) => {
     const parsedUnlock = parseUnlockDate(unlockDate);
     if (!parsedUnlock) return res.status(400).json({ error: "Invalid unlockDate" });
 
+    // Ensure unlockDate is in the future
+    if (parsedUnlock.getTime() <= Date.now()) {
+      return res.status(400).json({ error: "Unlock date and time must be in the future" });
+    }
+
     if (recipientEmail && !isEmail(recipientEmail)) return res.status(400).json({ error: "Invalid recipientEmail" });
 
     const shareToken = crypto.randomBytes(10).toString("hex") + "-" + Date.now().toString(36);
@@ -175,14 +180,17 @@ router.post("/:id/send", auth, async (req, res) => {
 
     const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
 
+    const senderEmail = capsule.userEmail || req.user?.email || "someone";
+    const senderName = req.user?.name ? `${req.user.name} (${senderEmail})` : senderEmail;
+
     await sendCapsuleEmail(
       recipient,
       capsule.title || "Time Capsule",
       capsule.unlockDate ? capsule.unlockDate.toISOString() : new Date().toISOString(),
       shareUrl,
       capsule.attachments || [],
-      req.user.name ? `${req.user.name} (${req.user.email})` : req.user.email,
-      req.user.email
+      senderName,
+      senderEmail
     );
 
     res.json({ success: true, message: `Capsule link successfully sent to ${recipient}!` });

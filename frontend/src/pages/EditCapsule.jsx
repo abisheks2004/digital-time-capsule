@@ -63,20 +63,27 @@ export default function EditCapsule() {
     setSaving(true);
 
     try {
-      // Convert local date and time to proper ISO UTC timestamp preserving user's chosen local time
-      let isoDateTime = unlockDate;
-      if (unlockDate) {
-        const [y, m, d] = unlockDate.split("-").map(Number);
-        let h = 0;
-        let min = 0;
-        if (unlockTime) {
-          const [th, tm] = unlockTime.split(":").map(Number);
-          h = th;
-          min = tm;
-        }
-        const localDate = new Date(y, m - 1, d, h, min, 0, 0);
-        isoDateTime = localDate.toISOString();
+      if (!unlockDate || !unlockTime) {
+        setStatus({ type: "error", message: "Please specify both unlock date and unlock time." });
+        setSaving(false);
+        return;
       }
+
+      const [y, m, d] = unlockDate.split("-").map(Number);
+      const [th, tm] = unlockTime.split(":").map(Number);
+      const localDate = new Date(y, m - 1, d, th, tm, 0, 0);
+
+      // Validate that the chosen time is strictly in the future
+      if (localDate.getTime() <= Date.now()) {
+        setStatus({
+          type: "error",
+          message: "⚠️ Unlock date and time must be in the future! Please select a future time.",
+        });
+        setSaving(false);
+        return;
+      }
+
+      const isoDateTime = localDate.toISOString();
 
       const payload = {
         title: title.trim() || "Time Capsule",
@@ -213,6 +220,7 @@ export default function EditCapsule() {
                     <input
                       type="date"
                       value={unlockDate}
+                      min={new Date().toISOString().split("T")[0]}
                       onChange={(e) => setUnlockDate(e.target.value)}
                       className="theme-input py-2 px-3 text-xs sm:text-sm rounded-xl cursor-pointer"
                       required
@@ -221,13 +229,14 @@ export default function EditCapsule() {
 
                   <div>
                     <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300">
-                      Unlock Time
+                      Unlock Time <span className="text-rose-400">*</span>
                     </label>
                     <input
                       type="time"
                       value={unlockTime}
                       onChange={(e) => setUnlockTime(e.target.value)}
                       className="theme-input py-2 px-3 text-xs sm:text-sm rounded-xl cursor-pointer"
+                      required
                     />
                   </div>
                 </div>
