@@ -51,7 +51,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-140px)] flex flex-col justify-center space-y-6 py-10">
+    <div className="relative min-h-[calc(100vh-140px)] flex flex-col justify-center space-y-6 py-4">
       {/* Compact User Header Profile Panel */}
       {user && (
         <motion.div
