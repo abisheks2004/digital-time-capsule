@@ -7,6 +7,8 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import CreateCapsule from "./pages/CreateCapsule";
 import EditCapsule from "./pages/EditCapsule";
+import MyCapsules from "./pages/MyCapsules";
+import SharedCapsules from "./pages/SharedCapsules";
 import ShareCapsule from "./pages/ShareCapsule";
 
 export default function App() {
@@ -60,6 +62,8 @@ export default function App() {
           <Route path="/profile" element={token ? <ProfilePage /> : <Navigate to="/" replace />} />
           <Route path="/create" element={token ? <CreateCapsule /> : <Navigate to="/" replace />} />
           <Route path="/edit/:id" element={token ? <EditCapsule /> : <Navigate to="/" replace />} />
+          <Route path="/my-capsules" element={token ? <MyCapsules /> : <Navigate to="/" replace />} />
+          <Route path="/shared-capsules" element={token ? <SharedCapsules /> : <Navigate to="/" replace />} />
 
           {/* Public Share Route */}
           <Route path="/capsule/share/:shareLink" element={<ShareCapsule />} />
