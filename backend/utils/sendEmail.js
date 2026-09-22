@@ -7,10 +7,13 @@ dotenv.config();
 
 // Setup dynamic SMTP transporter (Gmail or custom SMTP)
 function getSmtpTransporter() {
-  const user = process.env.EMAIL_USER?.trim();
-  const rawPass = process.env.EMAIL_PASS?.trim();
-  // Strip spaces if user pasted Google App Password formatted like "abcd efgh ijkl mnop"
-  const pass = rawPass ? rawPass.replace(/\s+/g, "") : null;
+  const rawUser = process.env.EMAIL_USER;
+  const rawPass = process.env.EMAIL_PASS;
+  if (!rawUser || !rawPass) return null;
+
+  // Clean and sanitize quotes, env key prefixes, and extra spaces
+  const user = rawUser.trim().replace(/^EMAIL_USER\s*=\s*/i, "").replace(/^["']|["']$/g, "").trim();
+  const pass = rawPass.trim().replace(/^EMAIL_PASS\s*=\s*/i, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "").trim();
 
   if (!user || !pass) return null;
 
@@ -28,6 +31,7 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 export default async function sendEmail({ to, subject, text, html, attachments = [], replyTo }) {
   // 1. If SMTP (Gmail) is configured, prefer SMTP (it sends to ANY recipient domain without restrictions!)
   const smtpConfig = getSmtpTransporter();
+  console.log(`[sendEmail] Target: ${to} | Provider: ${smtpConfig ? `Gmail SMTP (${smtpConfig.user})` : (resend ? "Resend" : "None")}`);
   if (smtpConfig) {
     try {
       const info = await smtpConfig.transporter.sendMail({
@@ -39,7 +43,7 @@ export default async function sendEmail({ to, subject, text, html, attachments =
         html: html || `<p>${text}</p>`,
         attachments,
       });
-      console.log(`✅ Email sent via Gmail SMTP → ${to}`);
+      console.log(`✅ Email sent via Gmail SMTP (${smtpConfig.user}) → ${to}`);
       return info;
     } catch (smtpErr) {
       console.error(`❌ Gmail SMTP error for ${to}:`, smtpErr.message);

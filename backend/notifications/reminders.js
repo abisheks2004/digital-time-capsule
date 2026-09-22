@@ -19,7 +19,7 @@ export function startReminderCron() {
         recipientEmail: { $exists: true, $type: "string", $ne: "" },
         unlockDate: { $gt: now },
       })
-        .select("_id title message userEmail recipientEmail unlockDate shareLink remindersSent")
+        .select("_id title message userEmail recipientEmail unlockDate shareLink remindersSent createdAt")
         .lean();
 
       if (!items.length) {
@@ -32,7 +32,8 @@ export function startReminderCron() {
 
       for (const cap of items) {
         const sentSet = new Set(Array.isArray(cap.remindersSent) ? cap.remindersSent : []);
-        const stage = nextReminderStage(cap.unlockDate, sentSet);
+        const createdAt = cap.createdAt || (cap._id ? new Date(parseInt(cap._id.toString().substring(0, 8), 16) * 1000) : null);
+        const stage = nextReminderStage(cap.unlockDate, sentSet, createdAt);
         if (!stage) continue;
 
         // ✅ Safe recipient email

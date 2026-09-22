@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import ShareOptions from "../components/ShareOptions";
 
 export default function ShareCapsule() {
   const { shareLink } = useParams();
@@ -10,7 +9,6 @@ export default function ShareCapsule() {
   const [error, setError] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL;
-  const FRONTEND_URL = import.meta.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
 
   useEffect(() => {
     const fetchCapsule = async () => {
@@ -75,13 +73,20 @@ export default function ShareCapsule() {
           </div>
         </div>
 
-        <h2 className="mb-4 text-2xl font-bold text-slate-100">{capsule.title || "Time Capsule"}</h2>
+        <h2 className="mb-1 text-2xl font-bold text-slate-100">{capsule.title || "Time Capsule"}</h2>
+        {capsule.userEmail && (
+          <p className="mb-4 text-xs font-medium text-slate-400">
+            From: <span className="text-amber-300/90">{capsule.userEmail}</span>
+          </p>
+        )}
 
-        <p className="mb-5 break-words text-lg leading-8 text-slate-200">
-          {isUnlocked
-            ? capsule.message
-            : `This capsule is locked until ${unlockDateLocal}`}
-        </p>
+        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 mb-6">
+          <p className="break-words text-lg leading-8 text-slate-200 whitespace-pre-wrap">
+            {isUnlocked
+              ? capsule.message
+              : `⏳ This capsule is locked until ${unlockDateLocal}`}
+          </p>
+        </div>
 
         {isUnlocked && capsule.attachments?.length > 0 && (
           <div className="mb-5">
@@ -97,14 +102,8 @@ export default function ShareCapsule() {
             </ul>
           </div>
         )}
-
-        {isUnlocked && (
-          <ShareOptions
-            shareUrl={`${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`}
-            capsule={capsule}
-          />
-        )}
       </div>
     </div>
   );
 }
+

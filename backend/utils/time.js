@@ -48,23 +48,42 @@ export function formatLocal(dt) {
 
 /**
  * Decide which reminder to send given now and target time.
+ * Enforces stage windows and minimum lead times so short-lived capsules don't spam reminders.
  * Returns a stage key or null if none due.
  */
-export function nextReminderStage(target, sentSet = new Set()) {
+export function nextReminderStage(target, sentSet = new Set(), createdAt = null) {
   const diff = remainingMs(target);
   if (diff == null) return null;
   if (diff <= 0) return null;
 
-  // Stages from far to near
+  const targetDate = new Date(target);
+  const createdDate = createdAt ? new Date(createdAt) : null;
+  // Total lifespan from creation to unlock
+  const totalDuration =
+    createdDate && !Number.isNaN(createdDate.getTime())
+      ? targetDate - createdDate
+      : Infinity;
+
+  // Stages configuration:
+  // - maxMs: stage triggers when diff <= maxMs
+  // - minMs: stage only triggers if diff > minMs (e.g. don't send 1h reminder if only 5 minutes left)
+  // - minLead: only send this reminder if the capsule was created with at least this much total duration
   const stages = [
-    { key: "24h", ms: 24 * MS.hr },
-    { key: "1h", ms: 1 * MS.hr },
-    { key: "10m", ms: 10 * MS.min },
-    { key: "1m", ms: 1 * MS.min },
+    { key: "24h", maxMs: 24 * MS.hr, minMs: 1 * MS.hr, minLead: 48 * MS.hr },
+    { key: "1h",  maxMs: 1 * MS.hr,  minMs: 10 * MS.min, minLead: 2 * MS.hr },
+    { key: "10m", maxMs: 10 * MS.min, minMs: 1 * MS.min,  minLead: 20 * MS.min },
+    { key: "1m",  maxMs: 1 * MS.min,  minMs: 0,           minLead: 3 * MS.min },
   ];
 
   for (const s of stages) {
-    if (diff <= s.ms && !sentSet.has(s.key)) return s.key;
+    if (
+      diff <= s.maxMs &&
+      diff > s.minMs &&
+      totalDuration >= s.minLead &&
+      !sentSet.has(s.key)
+    ) {
+      return s.key;
+    }
   }
   return null;
 }
