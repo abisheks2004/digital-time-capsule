@@ -5,7 +5,7 @@ dotenv.config();
 
 (async () => {
   try {
-    console.log("📨 Testing email sending via Resend...");
+    console.log("📨 Testing email sending via Gmail SMTP...");
 
     const result = await sendEmail({
       to: "abisheka067@gmail.com", // 👈 change to your real email
@@ -14,7 +14,7 @@ dotenv.config();
       html: `
         <div style="font-family:Arial,sans-serif;background:#111827;color:#e5e7eb;padding:20px;border-radius:12px">
           <h2 style="color:#22c55e">Digital Time Capsule Email Test</h2>
-          <p>Your backend email system using Resend is working correctly 🚀</p>
+          <p>Your backend email system using Gmail SMTP is working correctly 🚀</p>
         </div>
       `,
     });

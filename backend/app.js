@@ -44,7 +44,6 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/api/email-health", async (req, res) => {
   const rawUser = process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.MAIL_USER || process.env.SMTP_USER;
   const rawPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS || process.env.MAIL_PASS || process.env.SMTP_PASS || process.env.EMAIL_PASSWORD;
-  const hasResend = !!process.env.RESEND_API_KEY;
 
   const userClean = rawUser ? rawUser.trim().replace(/^[A-Z_]+\s*=\s*/i, "").replace(/^["']|["']$/g, "").trim() : null;
   const passClean = rawPass ? rawPass.trim().replace(/^[A-Z_]+\s*=\s*/i, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "").trim() : null;
@@ -59,6 +58,7 @@ app.get("/api/email-health", async (req, res) => {
         port: 465,
         secure: true,
         auth: { user: userClean, pass: passClean },
+        family: 4, // Force IPv4
         connectionTimeout: 10000,
       });
       await t465.verify();
@@ -73,6 +73,7 @@ app.get("/api/email-health", async (req, res) => {
         port: 587,
         secure: false,
         auth: { user: userClean, pass: passClean },
+        family: 4, // Force IPv4
         connectionTimeout: 10000,
       });
       await t587.verify();
@@ -83,11 +84,11 @@ app.get("/api/email-health", async (req, res) => {
   }
 
   res.json({
+    smtpMode: "Gmail SMTP Only",
     emailUserConfigured: !!userClean,
     emailUserMasked: userClean ? `${userClean.slice(0, 3)}***@${userClean.split("@")[1] || ""}` : null,
     emailPassConfigured: !!passClean,
     emailPassLength: passClean ? passClean.length : 0,
-    resendConfigured: hasResend,
     port465,
     port587,
   });
