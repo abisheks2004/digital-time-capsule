@@ -7,13 +7,13 @@ dotenv.config();
 
 // Setup dynamic SMTP transporter (Gmail or custom SMTP)
 function getSmtpTransporter() {
-  const rawUser = process.env.EMAIL_USER;
-  const rawPass = process.env.EMAIL_PASS;
+  const rawUser = process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.MAIL_USER || process.env.SMTP_USER;
+  const rawPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS || process.env.MAIL_PASS || process.env.SMTP_PASS || process.env.EMAIL_PASSWORD;
   if (!rawUser || !rawPass) return null;
 
   // Clean and sanitize quotes, env key prefixes, and extra spaces
-  const user = rawUser.trim().replace(/^EMAIL_USER\s*=\s*/i, "").replace(/^["']|["']$/g, "").trim();
-  const pass = rawPass.trim().replace(/^EMAIL_PASS\s*=\s*/i, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "").trim();
+  const user = rawUser.trim().replace(/^[A-Z_]+\s*=\s*/i, "").replace(/^["']|["']$/g, "").trim();
+  const pass = rawPass.trim().replace(/^[A-Z_]+\s*=\s*/i, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "").trim();
 
   if (!user || !pass) return null;
 
@@ -50,10 +50,7 @@ export default async function sendEmail({ to, subject, text, html, attachments =
       return info;
     } catch (smtpErr) {
       console.error(`❌ Gmail SMTP error for ${to}:`, smtpErr.message);
-      if (!resend) {
-        throw new Error(`Email sending error: ${smtpErr.message}`);
-      }
-      console.warn(`⚠️ Falling back to Resend...`);
+      throw new Error(`Gmail SMTP error: ${smtpErr.message}. Please verify your EMAIL_USER and EMAIL_PASS on Render.`);
     }
   }
 
