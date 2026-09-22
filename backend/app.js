@@ -49,23 +49,36 @@ app.get("/api/email-health", async (req, res) => {
   const userClean = rawUser ? rawUser.trim().replace(/^[A-Z_]+\s*=\s*/i, "").replace(/^["']|["']$/g, "").trim() : null;
   const passClean = rawPass ? rawPass.trim().replace(/^[A-Z_]+\s*=\s*/i, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "").trim() : null;
 
-  let smtpStatus = "not_configured";
-  let smtpError = null;
+  let port465 = { status: "not_tested" };
+  let port587 = { status: "not_tested" };
 
   if (userClean && passClean) {
     try {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
+      const t465 = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
         auth: { user: userClean, pass: passClean },
-        connectionTimeout: 8000,
-        greetingTimeout: 8000,
-        socketTimeout: 10000,
+        connectionTimeout: 10000,
       });
-      await transporter.verify();
-      smtpStatus = "connected";
-    } catch (err) {
-      smtpStatus = "failed";
-      smtpError = err.message;
+      await t465.verify();
+      port465 = { status: "connected" };
+    } catch (e) {
+      port465 = { status: "failed", error: e.message };
+    }
+
+    try {
+      const t587 = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: { user: userClean, pass: passClean },
+        connectionTimeout: 10000,
+      });
+      await t587.verify();
+      port587 = { status: "connected" };
+    } catch (e) {
+      port587 = { status: "failed", error: e.message };
     }
   }
 
@@ -75,8 +88,8 @@ app.get("/api/email-health", async (req, res) => {
     emailPassConfigured: !!passClean,
     emailPassLength: passClean ? passClean.length : 0,
     resendConfigured: hasResend,
-    smtpStatus,
-    smtpError,
+    port465,
+    port587,
   });
 });
 
