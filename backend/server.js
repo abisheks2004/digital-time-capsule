@@ -1,31 +1,16 @@
-import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import app from "./app.js"; // <-- ESM import
-import { startNotificationCron } from "./notifications/cron.js"; // <-- ESM import
-import { startReminderCron } from "./notifications/reminders.js"; // <-- ESM import
+import app from "./app.js";
+import connectDB from "./db.js";
+import { startNotificationCron } from "./notifications/cron.js";
+import { startReminderCron } from "./notifications/reminders.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/timecapsule";
 
 // Optional: ensure a consistent timezone for server-side scheduling
 process.env.TZ = process.env.TZ || "UTC";
-
-// Mongoose config
-mongoose.set("strictQuery", true);
-
-async function connectDB() {
-  try {
-    await mongoose.connect(MONGO_URI, { autoIndex: true });
-    console.log("✅ MongoDB connected");
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err.message);
-    console.error("Check MONGO_URI, IP whitelist, and network.");
-    process.exit(1);
-  }
-}
 
 // Guards to avoid double-starting crons in certain run modes
 global.__CRONS_STARTED = global.__CRONS_STARTED || false;
@@ -39,7 +24,11 @@ global.__CRONS_STARTED = global.__CRONS_STARTED || false;
     console.error("Uncaught Exception:", err);
   });
 
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error("Failed to connect to DB at startup:", err.message);
+  }
 
   // Start crons AFTER DB is ready (only once)
   if (!global.__CRONS_STARTED) {

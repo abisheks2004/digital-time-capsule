@@ -2,11 +2,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
+import connectDB from "./db.js";
+import { runNotificationCheck } from "./notifications/cron.js";
+import { runReminderCheck } from "./notifications/reminders.js";
 
 // Load environment variables
 dotenv.config();
-
-import nodemailer from "nodemailer";
 
 // Routes
 import capsulesRoutes from "./routes/capsules.js";
@@ -26,19 +28,43 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 // Middleware
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    callback(new Error(`Origin ${origin} not allowed by CORS`));
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Ensure DB is connected for serverless & regular requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("❌ DB connection error:", err.message);
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
+
+// Scheduled cron trigger for Vercel Cron & external webhooks
+app.all("/api/cron", async (req, res) => {
+  try {
+    const notifyRes = await runNotificationCheck();
+    const reminderRes = await runReminderCheck();
+    res.json({ success: true, timestamp: new Date(), notifyRes, reminderRes });
+  } catch (err) {
+    console.error("❌ Cron execution error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Email diagnostic endpoint
 app.get("/api/email-health", async (req, res) => {
@@ -58,7 +84,7 @@ app.get("/api/email-health", async (req, res) => {
         port: 465,
         secure: true,
         auth: { user: userClean, pass: passClean },
-        family: 4, // Force IPv4
+        family: 4,
         connectionTimeout: 10000,
       });
       await t465.verify();
@@ -73,7 +99,7 @@ app.get("/api/email-health", async (req, res) => {
         port: 587,
         secure: false,
         auth: { user: userClean, pass: passClean },
-        family: 4, // Force IPv4
+        family: 4,
         connectionTimeout: 10000,
       });
       await t587.verify();
