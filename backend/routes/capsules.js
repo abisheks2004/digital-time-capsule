@@ -16,6 +16,8 @@ const getFrontendUrl = (req) => {
   return process.env.FRONTEND_URL || "https://digital-time-capsule-blush.vercel.app";
 };
 
+const router = express.Router();
+
 // Email validation
 const isEmail = (e) => /^\S+@\S+\.\S+$/.test(String(e || "").trim());
 
