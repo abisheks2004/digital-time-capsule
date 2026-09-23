@@ -3,8 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import API_URL from "../config/api";
 
 export default function SharedDropdown({ token, refreshTrigger }) {
   const [sharedCapsules, setSharedCapsules] = useState([]);

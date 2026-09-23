@@ -1,14 +1,13 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import API_URL from "../config/api";
 
 export default function ShareCapsule() {
   const { shareLink } = useParams();
   const [capsule, setCapsule] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchCapsule = async () => {

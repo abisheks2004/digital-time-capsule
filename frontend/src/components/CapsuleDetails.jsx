@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import ShareOptions from "./ShareOptions";
+import API_URL from "../config/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const FRONTEND_URL =
   import.meta.env.FRONTEND_URL ||
   "https://digital-time-capsule-five.vercel.app";

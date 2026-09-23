@@ -2,8 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import API_URL from "../config/api";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,7 +27,7 @@ export default function LoginPage() {
         setIsLogin(true);
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Operation failed");
+      alert(err.response?.data?.message || err.response?.data?.error || err.message || "Operation failed");
     } finally {
       setLoading(false);
     }

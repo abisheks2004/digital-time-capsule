@@ -3,8 +3,7 @@ import { useState } from "react";
 import { FaWhatsapp, FaLink, FaCheck, FaPaperPlane } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import API_URL from "../config/api";
 
 export default function ShareOptions({ shareUrl, capsule }) {
   const [copied, setCopied] = useState(false);

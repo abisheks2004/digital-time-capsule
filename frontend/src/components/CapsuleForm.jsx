@@ -2,8 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import API_URL from "../config/api";
 
 export default function CapsuleForm() {
   // Default to 1 hour in the future so time is never left blank or set to 12:00 am midnight

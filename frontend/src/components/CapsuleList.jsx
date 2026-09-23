@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import CapsuleDetails from "./CapsuleDetails";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import API_URL from "../config/api";
 
 export default function CapsuleList({ capsules: propCapsules, onShareToggle, onRefresh }) {
   const [internalCapsules, setInternalCapsules] = useState([]);
