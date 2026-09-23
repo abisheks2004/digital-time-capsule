@@ -6,8 +6,9 @@ import ShareOptions from "./ShareOptions";
 import API_URL from "../config/api";
 
 const FRONTEND_URL =
+  (typeof window !== "undefined" ? window.location.origin : null) ||
   import.meta.env.FRONTEND_URL ||
-  "https://digital-time-capsule-five.vercel.app";
+  "https://digital-time-capsule-blush.vercel.app";
 
 export default function CapsuleDetails({ capsule, onDelete }) {
   const [deleting, setDeleting] = useState(false);

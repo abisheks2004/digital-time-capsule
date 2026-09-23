@@ -2,7 +2,7 @@ import cron from "node-cron";
 import Capsule from "../models/Capsule.js";
 import sendEmail from "../utils/sendEmail.js";
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-blush.vercel.app";
 const CRON_SCHEDULE = process.env.CRON_SCHEDULE || "*/1 * * * *";
 
 let isRunning = false;

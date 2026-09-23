@@ -3,7 +3,7 @@ import Capsule from "../models/Capsule.js";
 import sendEmail from "../utils/sendEmail.js";
 import { nextReminderStage, relativeFromNow, formatLocal } from "../utils/time.js";
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-blush.vercel.app";
 const CRON_SCHEDULE = process.env.CRON_REMINDERS || "*/1 * * * *"; // every minute
 let running = false;
 

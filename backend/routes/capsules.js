@@ -5,8 +5,16 @@ import Capsule from "../models/Capsule.js";
 import auth from "../middleware/auth.js";
 import sendCapsuleEmail from "../utils/sendCapsuleEmail.js";
 
-const router = express.Router();
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://digital-time-capsule-five.vercel.app";
+const getFrontendUrl = (req) => {
+  const origin = req?.headers?.origin || req?.headers?.referer;
+  if (origin) {
+    try {
+      const url = new URL(origin);
+      return `${url.protocol}//${url.host}`;
+    } catch {}
+  }
+  return process.env.FRONTEND_URL || "https://digital-time-capsule-blush.vercel.app";
+};
 
 // Email validation
 const isEmail = (e) => /^\S+@\S+\.\S+$/.test(String(e || "").trim());
@@ -52,7 +60,7 @@ router.post("/", auth, async (req, res) => {
 
     await capsule.save();
 
-    const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink}`;
+    const shareUrl = `${getFrontendUrl(req)}/capsule/share/${capsule.shareLink}`;
 
     // Send confirmation to recipient email whenever provided
     if (recipientEmail && isEmail(recipientEmail)) {
@@ -142,7 +150,7 @@ router.put("/:id", auth, async (req, res) => {
 
     await capsule.save();
 
-    const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+    const shareUrl = `${getFrontendUrl(req)}/capsule/share/${capsule.shareLink || capsule._id}`;
 
     res.status(200).json({ success: true, capsule, shareUrl });
   } catch (err) {
@@ -178,7 +186,7 @@ router.post("/:id/send", auth, async (req, res) => {
       return res.status(400).json({ error: "No valid recipient email set on this capsule" });
     }
 
-    const shareUrl = `${FRONTEND_URL}/capsule/share/${capsule.shareLink || capsule._id}`;
+    const shareUrl = `${getFrontendUrl(req)}/capsule/share/${capsule.shareLink || capsule._id}`;
 
     const senderEmail = capsule.userEmail || req.user?.email || "someone";
     const senderName = req.user?.name ? `${req.user.name} (${senderEmail})` : senderEmail;
